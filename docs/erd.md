@@ -1,159 +1,186 @@
+# ERD
+
 ```mermaid
 erDiagram
-  USER {
-    uuid id PK
-    string email UK
-    string password_hash
-    string role "customer | owner | admin"
-    datetime last_login_at
-    datetime created_at
-    datetime updated_at
-  }
+    countries ||--o{ locations : "has"
+    locations ||--o{ workspaces : "located at"
+    locations ||--o{ profiles : "located at"
 
-  PROFILE {
-    uuid id PK
-    uuid user_id FK
-    uuid location_id FK "nullable"
-    string bio "nullable"
-    string phone_number "nullable"
-    string first_name "nullable"
-    string last_name "nullable"
-    string image_url "nullable"
-    datetime created_at
-    datetime updated_at
-  }
+    users ||--o| profiles : "has"
+    users ||--o| workspaces : "owns"
+    users ||--o{ bookings : "books (user_id)"
+    users |o--o{ bookings : "cancels, customer or owner (cancelled_by_id)"
+    users ||--o{ notifications : "receives"
 
-  WORKSPACE {
-    uuid id PK
-    uuid user_id FK "its role must be owner and unique"
-    uuid location_id FK
-    string name
-    string description
-    string status "active | inactive"
-    number floor_count
-    datetime created_at
-    datetime updated_at
-  }
+    workspaces ||--o{ rooms : "contains"
+    workspaces ||--o{ workspace_availabilities : "has"
+    workspaces ||--o{ images : "has"
 
-  WORKSPACE_AVAILABILITY {
-    uuid id PK
-    uuid workspace_id FK
-    string day_of_week
-    datetime start_at
-    datetime end_at
-    datetime created_at
-    datetime updated_at
-  }
+    rooms ||--o{ room_availabilities : "has"
+    rooms ||--o{ room_unavailabilities : "has"
+    rooms ||--o{ room_features : "has"
+    rooms ||--o{ bookings : "booked via"
+    features ||--o{ room_features : "applied to"
 
-  ROOM {
-    uuid id PK
-    uuid workspace_id FK
-    string code
-    number floor_number
-    integer price_per_hour
-    string name "nullable"
-    string description "nullable"
-    number capacity
-    datetime created_at
-    datetime updated_at
-    _ _ "UNIQUE(workspace_id, code)"
-  }
+    countries {
+        uuid id PK
+        varchar name UK
+        char iso2_code UK
+        char iso3_code UK
+        char currency_code
+        varchar phone_code
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-  ROOM_AVAILABILITY {
-    uuid id PK
-    uuid room_id FK
-    string day_of_week
-    datetime start_at
-    datetime end_at
-    datetime created_at
-    datetime updated_at
-  }
+    locations {
+        uuid id PK
+        uuid country_id FK
+        varchar city "nullable, indexed"
+        varchar area "nullable, indexed"
+        decimal longitude "nullable, indexed"
+        decimal latitude "nullable, indexed"
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-  ROOM_UNAVAILABILITY {
-    uuid id PK
-    uuid room_id FK
-    date day
-    string reason "nullable"
-    datetime created_at
-    datetime updated_at
-  }
+    users {
+        uuid id PK
+        varchar email UK
+        varchar password_hash "nullable"
+        enum role "customer, owner, admin"
+        varchar google_id UK "nullable"
+        timestamptz last_login_at "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-  LOCATION {
-    uuid id PK
-    string country
-    string city
-    string area
-    string longitude
-    string latitude
-    string google_map_url
-    datetime created_at
-    datetime updated_at
-  }
+    profiles {
+        uuid id PK
+        uuid user_id FK, UK
+        uuid location_id FK
+        varchar first_name
+        varchar last_name
+        varchar bio "nullable"
+        varchar avatar_url "nullable"
+        varchar phone_number "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-  FEATURE {
-    uuid id PK
-    string slug UK
-    string name
-    string icon_name "nullable"
-    datetime created_at
-    datetime updated_at
-  }
+    workspaces {
+        uuid id PK
+        uuid owner_id FK, UK
+        uuid location_id FK
+        varchar name "indexed"
+        varchar slug UK
+        varchar description "nullable"
+        smallint floor_count
+        enum status "active, inactive"
+        varchar timezone "IANA tz, default UTC"
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-  BOOKING {
-    uuid id PK
-    uuid user_id FK
-    uuid room_id FK
-    date booking_date
-    string status
-    time start_at
-    datetime confirmed_at "nullable"
-    datetime cancelled_at "nullable"
-    string cancellation_reason "nullable"
-    datetime created_at
-    datetime updated_at
-    _ _ "UNIQUE(room_id, booking_date, start_at)"
-  }
+    workspace_availabilities {
+        uuid id PK
+        uuid workspace_id FK "unique with day_of_week"
+        enum day_of_week "1=Mon to 7=Sun"
+        time start_at
+        time end_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-  NOTIFICATION {
-    uuid id PK
-    uuid recipient_user_id FK
-    string message
-    boolean is_read
-    datetime created_at
-    datetime updated_at
-  }
+    images {
+        uuid id PK
+        uuid workspace_id FK "unique with is_primary"
+        varchar url
+        text alt_text "nullable"
+        boolean is_primary
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-  ROOM_FEATURE {
-    uuid id PK
-    uuid room_id FK
-    uuid feature_id FK
-    string feature_details "nullable"
-    datetime created_at
-    datetime updated_at
-  }
+    rooms {
+        uuid id PK
+        uuid workspace_id FK "unique with code"
+        varchar name "nullable"
+        varchar description "nullable"
+        varchar code
+        decimal price_per_hour
+        smallint capacity
+        smallint floor_number "> 0 and <= floor_count"
+        decimal width_m
+        decimal length_m
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-  IMAGE {
-    uuid id PK
-    uuid workspace_id FK
-    string url
-    string alt_text "nullable"
-    boolean is_primary
-    datetime created_at
-    datetime updated_at
-  }
+    room_availabilities {
+        uuid id PK
+        uuid room_id FK "unique with day_of_week"
+        enum day_of_week "1=Mon to 7=Sun"
+        time start_at
+        time end_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-  USER ||--|| PROFILE : "has"
-  USER ||--o| WORKSPACE : "has"
-  USER ||--o{ BOOKING : "has"
-  USER ||--o{ NOTIFICATION : "has"
-  LOCATION ||--|| WORKSPACE : "belongs"
-  LOCATION ||--o| PROFILE : "belongs"
-  WORKSPACE ||--|{ ROOM : "has"
-  WORKSPACE ||--|{ IMAGE : "has"
-  WORKSPACE ||--o{ WORKSPACE_AVAILABILITY : "has"
-  ROOM ||--o{ ROOM_FEATURE : "has"
-  ROOM ||--o{ ROOM_AVAILABILITY : "has"
-  ROOM ||--o{ ROOM_UNAVAILABILITY : "has"
-  ROOM ||--o{ BOOKING : "has"
-  FEATURE ||--o{ ROOM_FEATURE : "belongs"
+    room_unavailabilities {
+        uuid id PK
+        uuid room_id FK "unique with day_date, start_at"
+        date day_date
+        varchar reason "nullable"
+        time start_at
+        time end_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    features {
+        uuid id PK
+        varchar name
+        varchar slug UK
+        varchar description "nullable"
+        varchar icon_name "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    room_features {
+        uuid id PK
+        uuid room_id FK "unique with feature_id"
+        uuid feature_id FK
+        varchar feature_details "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    bookings {
+        uuid id PK
+        uuid room_id FK "unique with date, start_at"
+        uuid user_id FK "the customer who booked"
+        uuid cancelled_by_id FK "nullable, customer or workspace owner"
+        date date "indexed"
+        time start_at
+        varchar customer_phone_number
+        enum status "pending, confirmed, cancelled"
+        timestamptz expires_at
+        timestamptz confirmed_at "nullable"
+        timestamptz cancelled_at "nullable"
+        varchar cancellation_reason "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    notifications {
+        uuid id PK
+        uuid recipient_id FK "indexed with created_at"
+        varchar type
+        varchar message
+        jsonb data "default empty object"
+        timestamptz read_at "nullable"
+        timestamptz created_at
+    }
 ```

@@ -1,57 +1,73 @@
 # FindSpace API
 
-Backend API for **FindSpace**, a workspace booking marketplace where customers can discover and book workspaces, while workspace owners manage their spaces and bookings.
+Backend API for **FindSpace**, a marketplace where customers find and book rooms in workspaces. Workspace owners manage their workspaces, rooms, availability, and bookings.
 
 ## Domain
 
-Workspace booking marketplace
+FindSpace helps customers find rooms in a selected country and book fixed one-hour time slots.
 
 ### Actors
 
-* **Customer** — discovers and books workspaces.
-* **Workspace Owner** — creates and manages workspaces and bookings.
-* **Admin** — oversees users, workspaces, and bookings.
+- **Customer** — finds rooms, manages their account, and books rooms.
+- **Workspace Owner** — manages workspaces, rooms, availability, and bookings.
+- **Admin** — manages users, workspaces, rooms, and bookings.
 
 ## Core Booking Flow
 
-1. Customer selects a workspace and time slot.
-2. Customer submits a booking with their phone number.
-3. Booking starts with `pending` status.
-4. The requested time slot becomes unavailable to other customers.
-5. Workspace Owner contacts the customer by phone or WhatsApp.
-6. Owner confirms or cancels the booking.
-7. If the booking is still pending 60 minutes before its start time, it is automatically cancelled.
+1. Customer chooses a country and finds a room.
+   - If the customer's profile has a country, it is selected by default.
+   - Otherwise, the customer must choose a country.
+   - This choice is not saved as the customer's profile country.
+2. Customer books a fixed one-hour time slot and provides a phone number.
+3. The booking starts with `pending` status.
+4. The pending booking holds the time slot.
+5. The workspace owner contacts the customer by phone or WhatsApp.
+6. The owner confirms or cancels the booking in the app.
+   - The owner must give a reason when cancelling.
+7. If the booking is not confirmed, it is automatically cancelled at the earlier of 20 minutes after creation or the booking's start time.
+8. A cancelled booking no longer holds the time slot.
 
 ## Current Status
 
 🚧 **In development**
 
-This project is being built as part of a full-stack learning roadmap, with a focus on applying system design and architecture concepts before implementation.
+This project is part of a full-stack learning roadmap. It focuses on planning requirements, data, and system design before implementation.
 
 ## Documentation
 
-* [`Requirements`](docs/requirements.md) — Product requirements, user stories, booking rules, and v1 scope.
+- [`Requirements`](docs/requirements.md) — User stories, booking rules, and v1 scope.
+- [`ERD (Mermaid)`](docs/erd.md) — Database entities and relationships.
+- [`See ERD on drawsql.app`](https://drawsql.app/teams/farghali/diagrams/findspace)
+- [`API Surface`](docs/api-surface.md)
+- [`API Contract`](docs/api-contract.md)
+- [`Brief`](docs/brief.md)
+
+## ERD
+
+![FindSpace ERD](docs/erd.jpg)
 
 ## Planned Scope
 
 The v1 platform will support:
 
-* Workspace discovery and search
-* Location, time, capacity, and feature filtering
-* Price sorting
-* Workspace details
-* Customer accounts
-* Workspace Owner accounts
-* Workspace management
-* Booking management
-* In-app notifications
-* Arabic / English language support
+- Room discovery and search by location or workspace name
+- Country selection
+- Filtering by time, capacity, and features
+- Sorting rooms by price
+- Room details
+- Customer and workspace owner accounts (email/password or Google)
+- Profile editing and profile images
+- Workspace and room management
+- Workspace and room availability settings
+- Booking creation, viewing, cancellation, and owner confirmation
+- Saved notifications for booking updates and reminders
+- Arabic and English language support
 
 ### Out of Scope for v1
 
-* Payments
-* Reviews and ratings
-* Recurring bookings
-* Customer–owner messaging
-* Discounts
-* Real-time notifications
+- Payments
+- Reviews and ratings
+- Recurring bookings
+- Customer-owner messaging inside the platform
+- Discounts
+- Real-time notifications
