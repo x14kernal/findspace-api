@@ -1,81 +1,118 @@
 # FindSpace — Requirements
 
-## 1. Domain
+## 1. What is FindSpace?
 
-Workspace booking marketplace.
+FindSpace helps people find and book rooms in workspaces.
 
-## 2. Actors
+Customers find rooms and book a one-hour time slot. Workspace owners manage their workspaces, rooms, and bookings. Admins manage the platform.
 
-- **Customer** — discovers and books spaces.
-- **Workspace Owner** — creates and manages spaces and bookings.
-- **Admin** — oversees users, spaces, and bookings.
-
-## 3. User Stories
+## 2. Users
 
 ### Customer
 
-- As a customer, I want to `explore` all available `spaces`, so that I can select from them.
-- As a customer, I want to `search` by `location`, so that I can find spaces near me or at a specific location.
-- As a customer, I want to `search` by `space name`, so that I can find a specific space.
-- As a customer, I want to `filter` by `time slot`, so that I can find a space available at a specific time.
-- As a customer, I want to `filter` by `capacity`, so that I can find an appropriate space for my team.
-- As a customer, I want to `filter` by `features`, such as air conditioning and Wi-Fi, so that I can find spaces with the features I need.
-- As a customer, I want to `sort` spaces by `price`, low-to-high or high-to-low, so that I can find a space within my budget.
-- As a customer, I want to `view` the details of a specific space, so that I can decide whether it meets my needs.
-- As a customer, I want to `create` an account with email and password, so that I can use features that require an account.
-- As a customer, I want to `create` an account with Google, so that I can create an account quickly.
-- As a customer, I want to `log in` with my email and password, so that I can access my account and book spaces.
-- As a customer, I want to `log in` with Google, so that I can access my account quickly.
-- As a customer, I want to `log out`, so that I can end my current session.
-- As a customer, I want to `manage` my profile, so that I can keep my personal information up to date.
-- As a customer, I want to `upload` a profile image, so that I can personalize my profile.
-- As a customer, I want to `book` a space for a specific time slot, so that I can use it at the time I need.
-- As a customer, I want to `view` all my bookings, so that I can check and manage my reservations.
-- As a customer, I want to `cancel` a booking, so that the time slot becomes available again.
-- As a customer, I want to `change` the app's language `Arabic/English`, so that I can use it in my native language
-- As a customer, I want to receive a notification when my booking is confirmed, so that I know the workspace is confirmed for me.
-- As a customer, I want to receive a notification when my booking is cancelled, so that I know I can no longer use the workspace.
-- As a customer, I want to receive a reminder about an upcoming booking, so that I don't forget about it.
+A customer can find rooms, manage their account, and book rooms.
 
 ### Workspace Owner
 
-- As a workspace owner, I want to `create` an account with email and password, so that I can manage my spaces.
-- As a workspace owner, I want to `create` an account with Google, so that I can create an account quickly.
-- As a workspace owner, I want to `log in` with my email and password, so that I can manage my spaces.
-- As a workspace owner, I want to `log in` with Google, so that I can access my account quickly.
-- As a workspace owner, I want to `log out`, so that I can end my current session.
-- As a workspace owner, I want to `create` a space, so that I can make it available for booking.
-- As a workspace owner, I want to `edit` my space's details, so that I can keep its information accurate.
-- As a workspace owner, I want to `remove` my space from the platform, so that it is no longer available for booking.
-- As a workspace owner, I want to `define` my space's capacity and features, so that customers can find a suitable space.
-- As a workspace owner, I want to `define` the available time slots for my space, so that customers know when they can book it.
-- As a workspace owner, I want to `view` bookings for my spaces, so that I can manage upcoming reservations.
-- As a workspace owner, I want to `manage` a booking, so that I can handle reservations for my space.
-- As a workspace owner, I want to receive a notification when a customer creates a booking, so that I know I have a booking request to handle.
-- As a workspace owner, I want to receive a notification before a pending booking is automatically cancelled, so that I have an opportunity to contact the customer.
+A workspace owner can manage their workspace, rooms, availability, and bookings.
 
 ### Admin
 
-- As an admin, I want to `view` registered customers and workspace owners, so that I can manage platform users.
-- As an admin, I want to `manage` user accounts, so that I can handle problematic or invalid accounts.
-- As an admin, I want to `view` listed spaces, so that I can oversee spaces on the platform.
-- As an admin, I want to `manage` spaces, so that I can remove spaces that violate platform rules.
-- As an admin, I want to `view` bookings, so that I can oversee activity on the platform.
+An admin can manage users, workspaces, rooms, and bookings.
 
-## 4. Booking Rules
+## 3. Customer requirements
 
-- A customer can request a workspace for a specific time slot.
-- A booking starts with `pending` status.
-- A pending booking holds the time slot and makes it unavailable to other customers.
-- The workspace owner contacts the customer by phone/WhatsApp.
-- The owner can confirm or cancel the booking.
-- A pending booking is automatically cancelled 60 minutes before its start time if it has not been confirmed.
+### Find rooms
 
-## 5. Out of Scope for v1
+- As a customer, I want to see rooms in a selected country so I can find a room in the right place.
+- As a customer, I want to search by location or workspace name.
+- As a customer, I want to filter rooms by time, capacity, and features.
+- As a customer, I want to sort rooms by price.
+- As a customer, I want to view room details.
+
+### Account
+
+- As a customer, I want to sign up with email and password or Google.
+- As a customer, I want to be logged in after I sign up.
+- As a customer, I want to log in with email and password or Google.
+- As a customer, I want to log out.
+- As a customer, I want to edit my profile.
+- As a customer, I want to upload a profile image.
+- As a customer, I want to choose Arabic or English.
+
+### Bookings
+
+- As a customer, I want to book a room for a one-hour time slot.
+- As a customer, I must give my phone number when I book.
+- As a customer, I want to see my bookings.
+- As a customer, I want to cancel a pending or confirmed booking.
+- As a customer, I want to get a saved notification when my booking is confirmed or cancelled.
+- As a customer, I want to get a saved reminder before my booking.
+
+## 4. Workspace owner requirements
+
+### Account
+
+- As a workspace owner, I want to sign up and log in with email and password or Google.
+- As a workspace owner, I want to log out.
+
+### Workspace and rooms
+
+- As a workspace owner, I want to create and edit a workspace.
+- As a workspace owner, I want to upload images for my workspace.
+- As a workspace owner, I want to set my workspace's usual opening times.
+- As a workspace owner, I want to create and edit rooms.
+- As a workspace owner, I want to set each room's capacity, features, price, size, and floor number.
+- Room width and length are required.
+- As a workspace owner, I want to choose existing room features or create new ones.
+- As a workspace owner, I want to set room opening times that replace the workspace times when needed.
+- If a room has no own opening times, it uses the workspace's opening times.
+- As a workspace owner, I want to block times when a room cannot be booked.
+- As a workspace owner, I want to remove a workspace or room from the platform.
+
+### Bookings
+
+- As a workspace owner, I want to see bookings for each room.
+- As a workspace owner, I want to contact a customer by phone or WhatsApp before deciding on a booking.
+- As a workspace owner, I want to confirm or cancel a booking in the app after contacting the customer.
+- As a workspace owner, I must give a reason when I cancel a booking.
+- As a workspace owner, I want to get a saved notification when a new booking is made.
+
+## 5. Admin requirements
+
+- As an admin, I want to see registered customers and workspace owners.
+- As an admin, I want to manage user accounts.
+- As an admin, I want to see and manage listed workspaces and rooms.
+- As an admin, I want to see and manage bookings.
+
+## 6. Booking rules
+
+- Customers book rooms, not whole workspaces.
+- Each booking is for one fixed, one-hour time slot.
+- A new booking starts with the status `pending`.
+- A pending booking holds the time slot until it is confirmed or cancelled.
+- A pending booking expires at the earlier of:
+  - 20 minutes after it was created; or
+  - the booking's start time.
+- When a pending booking expires, its status must change to `cancelled`.
+- Workspace owners contact customers by phone or WhatsApp before confirming or cancelling a booking.
+- The owner must update the booking status in the app after contacting the customer.
+- An owner must provide a cancellation reason when cancelling a booking.
+- A cancelled booking must not keep the time slot blocked.
+
+## 7. Notifications
+
+- Save notifications so users can see them later.
+- Notifications do not need to appear in real time in v1.
+- Customers get a notification when a booking is confirmed or cancelled.
+- Customers get a reminder before an upcoming booking.
+- Workspace owners get a notification when a new booking is made.
+
+## 8. Out of scope for v1
 
 - Payments
-- Reviews/ratings
-- Recurring booking
-- Messaging between customer and owner
+- Reviews and ratings
+- Repeat bookings
+- Messages between customers and workspace owners
 - Discounts
-- Realtime Notification
+- Real-time notifications
