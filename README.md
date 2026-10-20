@@ -33,6 +33,50 @@ FindSpace helps customers find rooms in a selected country and book fixed one-ho
 
 This project is part of a full-stack learning roadmap. It focuses on planning requirements, data, and system design before implementation.
 
+## Development Setup
+
+### Requirements
+
+- Node.js 22.12 or newer
+- pnpm
+
+### Install
+
+```bash
+pnpm install
+cp .env.example .env
+```
+
+### Run locally
+
+```bash
+pnpm dev
+```
+
+The API runs on the port set by `PORT` (default: `3000`).
+
+### Available Scripts
+
+- `pnpm dev` — Start the development server.
+- `pnpm build` — Build the production server.
+- `pnpm start` — Run the production build.
+- `pnpm typecheck` — Check TypeScript.
+- `pnpm test` — Run tests.
+- `pnpm test:watch` — Run tests in watch mode.
+
+### Health Check
+
+```text
+GET /health
+```
+
+Returns a simple status response to check that the server is running.
+
+### Environment Variables
+
+- `NODE_ENV` — Runtime environment.
+- `PORT` — Server port.
+
 ## Documentation
 
 - [`Requirements`](docs/requirements.md) — User stories, booking rules, and v1 scope.
