@@ -1,0 +1,336 @@
+// use prisma-8
+
+
+// -----------------------------------------------------------------------------
+// Enums (PostgreSQL enum types)
+// -----------------------------------------------------------------------------
+native_enum UserRole {
+  customer = "customer"
+  owner = "owner"
+  admin = "admin"
+
+  @@map("user_role")
+}
+
+native_enum WorkspaceStatus {
+  active = "active"
+  inactive = "inactive"
+
+  @@map("workspace_status")
+}
+
+native_enum BookingStatus {
+  pending = "pending"
+  confirmed = "confirmed"
+  cancelled = "cancelled"
+
+  @@map("booking_status")
+}
+
+// ERD values 1=Mon -> 7=Sun, default 1.
+native_enum DayOfWeek {
+  monday = "1"
+  tuesday = "2"
+  wednesday = "3"
+  thursday = "4"
+  friday = "5"
+  saturday = "6"
+  sunday = "7"
+
+  @@map("day_of_week")
+}
+
+// -----------------------------------------------------------------------------
+// User group
+// -----------------------------------------------------------------------------
+model User {
+  id                Uuid                 @id @default(sql`gen_random_uuid()`)
+  email             VarChar              @unique
+  passwordHash      VarChar?             @map("password_hash") // null for Google-only accounts
+  role              pg.enum(UserRole)    @default("customer")
+  googleId          VarChar?             @unique @map("google_id") // multiple NULLs allowed
+  lastLoginAt       TimestamptzJsDate?            @map("last_login_at")
+  createdAt         TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+
+
+  profile           Profile?
+  ownedWorkspace    Workspace?
+  bookings          Booking[]            @relation("BookingCustomer")
+  cancelledBookings Booking[]            @relation("BookingCancelledBy")
+  notifications     Notification[]
+
+  @@map("users")
+}
+
+model Profile {
+  id          Uuid                 @id @default(sql`gen_random_uuid()`)
+  userId      Uuid                 @unique @map("user_id")
+  firstName   VarChar              @map("first_name")
+  lastName    VarChar              @map("last_name")
+  locationId  Uuid                 @map("location_id")
+  bio         VarChar?
+  avatarUrl   VarChar?             @map("avatar_url")
+  phoneNumber VarChar?             @map("phone_number")
+  createdAt   TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location    Location             @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  @@map("profiles")
+}
+
+// -----------------------------------------------------------------------------
+// Geography
+// -----------------------------------------------------------------------------
+model Country {
+  id           Uuid                 @id @default(sql`gen_random_uuid()`)
+  name         VarChar              @unique
+  iso2Code     Char(2)              @unique @map("iso2_code")
+  iso3Code     Char(3)              @unique @map("iso3_code")
+  currencyCode Char(3)              @map("currency_code")
+  phoneCode    VarChar(6)           @map("phone_code")
+  createdAt    TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+
+  locations    Location[]
+
+  @@map("countries")
+}
+
+model Location {
+  id         Uuid                 @id @default(sql`gen_random_uuid()`)
+  countryId  Uuid                 @map("country_id")
+  city       VarChar?
+  area       VarChar?
+  longitude  Decimal?
+  latitude   Decimal?
+  createdAt  TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+
+  country    Country              @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  workspaces Workspace[]
+  profiles   Profile[]
+
+  @@index([city])
+  @@index([area])
+  @@index([longitude])
+  @@index([latitude])
+  @@check(expression: sql`longitude BETWEEN -180 AND 180`, name: "locations_longitude_range")
+  @@check(expression: sql`latitude BETWEEN -90 AND 90`, name: "locations_latitude_range")
+  @@map("locations")
+}
+
+// -----------------------------------------------------------------------------
+// Workspace group
+// -----------------------------------------------------------------------------
+model Workspace {
+  id             Uuid                     @id @default(sql`gen_random_uuid()`)
+  ownerId        Uuid                     @unique @map("owner_id") // one workspace per owner
+  locationId     Uuid                     @map("location_id")
+  name           VarChar
+  slug           VarChar                  @unique
+  description    VarChar?
+  floorCount     SmallInt                 @map("floor_count")
+  status         pg.enum(WorkspaceStatus) @default("active")
+  timezone       VarChar(50)              @default("UTC") // must be a valid IANA name
+  createdAt      TimestamptzJsDate                 @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+
+
+  owner          User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  location       Location                 @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  availabilities WorkspaceAvailability[]
+  rooms          Room[]
+  images         Image[]
+
+  @@index([name])
+  @@check(expression: sql`floor_count > 0`, name: "workspaces_floor_count_positive")
+  @@map("workspaces")
+}
+
+model WorkspaceAvailability {
+  id          Uuid                 @id @default(sql`gen_random_uuid()`)
+  workspaceId Uuid                 @map("workspace_id")
+  dayOfWeek   pg.enum(DayOfWeek)   @default("1") @map("day_of_week")
+  startAt     TimeString                 @map("start_at")
+  endAt       TimeString                 @map("end_at")
+  createdAt   TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+
+  workspace   Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  // ONE row per workspace per weekday (no split shifts) — confirm intended.
+  @@unique([workspaceId, dayOfWeek])
+  @@check(expression: sql`start_at < end_at`, name: "workspace_availabilities_start_before_end")
+  @@map("workspace_availabilities")
+}
+
+model Image {
+  id          Uuid                 @id @default(sql`gen_random_uuid()`)
+  workspaceId Uuid                 @map("workspace_id")
+  url         VarChar
+  altText     String?              @map("alt_text")
+  isPrimary   Boolean              @default(false) @map("is_primary")
+  createdAt   TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+
+  workspace   Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index(
+    [workspaceId], 
+    unique: true, 
+    where: sql`is_primary = true`, 
+    name: "images_workspace_primary_unique"
+  )
+  @@map("images")
+}
+
+// -----------------------------------------------------------------------------
+// Room group
+// -----------------------------------------------------------------------------
+model Room {
+  id               Uuid                 @id @default(sql`gen_random_uuid()`)
+  workspaceId      Uuid                 @map("workspace_id")
+  name             VarChar?
+  description      VarChar?
+  code             VarChar(25) // unique per workspace, not globally
+  pricePerHour     Numeric(12, 2)       @map("price_per_hour")
+  capacity         SmallInt
+  floorNumber      SmallInt             @default(1) @map("floor_number") // > 0 and <= workspace.floor_count
+  widthM           Numeric(4, 2)        @map("width_m")
+  lengthM          Numeric(4, 2)        @map("length_m")
+  createdAt        TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+
+  workspace        Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  availabilities   RoomAvailability[]
+  unavailabilities RoomUnavailability[]
+  roomFeatures     RoomFeature[]
+  bookings         Booking[]
+
+  @@unique([workspaceId, code])
+  @@check(expression: sql`price_per_hour > 0`, name: "rooms_price_per_hour_positive")
+  @@check(expression: sql`capacity > 0`, name: "rooms_capacity_positive")
+  @@check(expression: sql`floor_number > 0`, name: "rooms_floor_number_positive")
+  @@check(expression: sql`width_m > 0`, name: "rooms_width_positive")
+  @@check(expression: sql`length_m > 0`, name: "rooms_length_positive")
+  @@map("rooms")
+}
+
+model RoomAvailability {
+  id        Uuid                 @id @default(sql`gen_random_uuid()`)
+  roomId    Uuid                 @map("room_id")
+  dayOfWeek pg.enum(DayOfWeek)   @default("1") @map("day_of_week")
+  startAt   TimeString                 @map("start_at")
+  endAt     TimeString                 @map("end_at")
+  createdAt TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+
+  room      Room                 @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  // ONE row per room per weekday (no split shifts) — confirm intended.
+  @@unique([roomId, dayOfWeek])
+  @@check(
+    expression: sql`start_at < end_at`, 
+    name: "room_availabilities_start_before_end"
+  )
+  @@map("room_availabilities")
+}
+
+model RoomUnavailability {
+  id        Uuid                 @id @default(sql`gen_random_uuid()`)
+  roomId    Uuid                 @map("room_id")
+  dayDate   DateString                 @map("day_date")
+  reason    VarChar?
+  startAt   TimeString                 @map("start_at")
+  endAt     TimeString                 @map("end_at")
+  createdAt TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+
+  room      Room                 @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  // Blocks duplicate start times only; overlapping periods need an exclusion constraint.
+  @@unique([roomId, dayDate, startAt])
+  @@check(expression: sql`start_at < end_at`, name: "room_unavailabilities_start_before_end")
+  @@map("room_unavailabilities")
+}
+
+model Feature {
+  id           Uuid                 @id @default(sql`gen_random_uuid()`)
+  name         VarChar
+  slug         VarChar              @unique
+  description  VarChar?
+  iconName     VarChar?             @map("icon_name")
+  createdAt    TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt    temporal.updatedAtJsDate() @map("updated_at")
+
+  roomFeatures RoomFeature[]
+
+  @@map("features")
+}
+
+// Join model for Room <-> Feature. It keeps its own id and feature_details, so
+// both sides relate to it as one-to-many (Prisma 8's list-through-join sugar
+// requires the join model's primary key to be exactly the two foreign keys).
+model RoomFeature {
+  id             Uuid                 @id @default(sql`gen_random_uuid()`)
+  roomId         Uuid                 @map("room_id")
+  featureId      Uuid                 @map("feature_id")
+  featureDetails VarChar?             @map("feature_details")
+  createdAt      TimestamptzJsDate             @default(now()) @map("created_at")
+  updatedAt      temporal.updatedAtJsDate() @map("updated_at")
+
+  room           Room                 @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  feature        Feature              @relation(fields: [featureId], references: [id], onDelete: Restrict)
+
+  @@unique([roomId, featureId])
+  @@map("room_features")
+}
+
+// -----------------------------------------------------------------------------
+// Bookings & notifications
+// -----------------------------------------------------------------------------
+model Booking {
+  id                  Uuid                   @id @default(sql`gen_random_uuid()`)
+  roomId              Uuid                   @map("room_id")
+  userId              Uuid                   @map("user_id")
+  date                DateString
+  startAt             TimeString                   @map("start_at")
+  customerPhoneNumber VarChar                @map("customer_phone_number")
+  status              pg.enum(BookingStatus) @default("pending")
+  expiresAt           TimestamptzJsDate               @map("expires_at") // no default in ERD; set by the app
+  confirmedAt         TimestamptzJsDate?              @map("confirmed_at")
+  cancelledAt         TimestamptzJsDate?              @map("cancelled_at")
+  cancellationReason  VarChar?               @map("cancellation_reason")
+  cancelledById       Uuid?                  @map("cancelled_by_id")
+  createdAt           TimestamptzJsDate               @default(now()) @map("created_at")
+  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+  
+
+  room                Room                   @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  user                User                   @relation("BookingCustomer", fields: [userId], references: [id], onDelete: Restrict)
+  cancelledBy         User?                  @relation("BookingCancelledBy", fields: [cancelledById], references: [id], onDelete: SetNull)
+
+  // Blocks the same start TimeString only, not overlapping bookings.
+  @@unique([roomId, date, startAt])
+  @@index([date])
+  @@map("bookings")
+}
+
+model Notification {
+  id          Uuid      @id @default(sql`gen_random_uuid()`)
+  recipientId Uuid      @map("recipient_id")
+  type        VarChar
+  message     VarChar
+  data        Jsonb     @default(json`{}`)
+  readAt      TimestamptzJsDate? @map("read_at")
+  createdAt   TimestamptzJsDate  @default(now()) @map("created_at")
+
+  recipient   User      @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, createdAt])
+  @@map("notifications")
+}

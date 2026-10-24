@@ -1,2 +1,12 @@
 allowBuilds:
   esbuild: true
+  workerd: true
+overrides:
+  effect: 4.0.5
+permissions:
+  '@prisma/orm-postgres':
+    skills: true
+  prisma:
+    skills: true
+skills:
+  dirs: []
