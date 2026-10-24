@@ -1,8 +1,10 @@
 # Dependencies
 node_modules/
 
-# Environment variables
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
 
 # Build output
 dist/
@@ -12,9 +14,14 @@ dist/
 npm-debug.log*
 pnpm-debug.log*
 
-
 # Editor
 .vscode/
-/src/generated/prisma
 
+# Generated Prisma client (if applicable)
+/src/generated/prisma/
+
+# Test output
 coverage/
+
+# Local OS files
+.DS_Store
