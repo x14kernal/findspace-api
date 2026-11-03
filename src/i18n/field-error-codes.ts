@@ -1,0 +1,10 @@
+export const FIELD_ERROR_CODES = {
+  INVALID_TYPE: 'INVALID_TYPE',
+  TOO_SMALL: 'TOO_SMALL',
+  TOO_BIG: 'TOO_BIG',
+  INVALID_FORMAT: 'INVALID_FORMAT',
+  INVALID_VALUE: 'INVALID_VALUE',
+  INVALID: 'INVALID',
+} as const;
+
+export type FieldErrorCode = (typeof FIELD_ERROR_CODES)[keyof typeof FIELD_ERROR_CODES];

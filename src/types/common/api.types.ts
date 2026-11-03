@@ -1,3 +1,5 @@
+import type { ErrorCode, FieldErrorCode, SuccessCode } from '../../i18n';
+
 export type PaginationMeta = {
   page: number;
   limit: number;
@@ -8,6 +10,7 @@ export type PaginationMeta = {
 
 export type ApiSuccess<T> = {
   success: true;
+  code: SuccessCode | null;
   data: T;
   meta: null;
 };
@@ -20,7 +23,7 @@ export type ApiSuccessWithMeta<T, P = PaginationMeta> = {
 
 export type ApiErrorDetails = {
   field: string;
-  code: string; // Must be from error codes list, let it string for now
+  code: FieldErrorCode;
   message: string;
 };
 
@@ -28,10 +31,13 @@ export type ApiError = {
   success: false;
   error: {
     message: string;
-    code: string; // Must be from error codes list, let it string for now
+    code: ErrorCode;
     details: ApiErrorDetails[] | null;
     requestId: string | null;
   };
 };
 
-export type ApiResponse<T, P = PaginationMeta> = ApiSuccess<T> | ApiSuccessWithMeta<T, P> | ApiError;
+export type ApiResponse<T, P = PaginationMeta> =
+  | ApiSuccess<T>
+  | ApiSuccessWithMeta<T, P>
+  | ApiError;
