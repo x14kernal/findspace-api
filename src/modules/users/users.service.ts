@@ -12,6 +12,11 @@ export const usersService = {
     return user;
   },
 
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    const user = await usersRepository.findByGoogleId(googleId);
+    return user;
+  },
+
   async findById(id: string): Promise<User | null> {
     const user = await usersRepository.findById(id);
     return user;

@@ -17,6 +17,10 @@ export const usersRepository = {
     return findOne({ email }, client);
   },
 
+  findByGoogleId(googleId: string, client: DbClient = db): Promise<User | null> {
+    return findOne({ googleId }, client);
+  },
+
   findById(id: string, client: DbClient = db): Promise<User | null> {
     return findOne({ id }, client);
   },

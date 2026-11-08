@@ -37,6 +37,21 @@ export const authController = {
     }
   },
 
+  async googleAuth(req: Request, res: Response) {
+    const { user, accessToken, refreshToken, isNewUser } = await authService.authenticateWithGoogle(
+      req.body,
+    );
+    res.cookie(REFRESH_COOKIE, refreshToken, refreshCookieOptions);
+
+    sendSuccess(
+      res,
+      { user, accessToken },
+      isNewUser
+        ? { status: 201, code: SUCCESS_CODES.AUTH_SIGNUP_SUCCESS }
+        : { status: 200, code: SUCCESS_CODES.AUTH_LOGIN_SUCCESS },
+    );
+  },
+
   async logout(req: Request, res: Response) {
     const token = req.cookies?.[REFRESH_COOKIE];
     if (typeof token === 'string' && token) await authService.logout(token);

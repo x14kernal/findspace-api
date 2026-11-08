@@ -11,3 +11,8 @@ export const loginWithEmailSchema = z.object({
   email: emailSchema,
   password: z.string().min(1),
 });
+
+export const googleAuthSchema = z.object({
+  idToken: z.string().min(1),
+  role: signupRoleSchema.default('customer'),
+});

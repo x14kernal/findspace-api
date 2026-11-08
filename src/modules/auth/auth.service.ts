@@ -1,5 +1,11 @@
-import type { LoginResponse, LoginWithEmail, SignupWithEmail } from '../../types/auth.types';
-import type { UserResponse } from '../../types/user.types';
+import type {
+  GoogleAuth,
+  GoogleAuthResponse,
+  LoginResponse,
+  LoginWithEmail,
+  SignupWithEmail,
+} from '../../types/auth.types';
+import type { User, UserResponse } from '../../types/user.types';
 
 import { ConflictError } from '../../errors/conflict.error';
 import { hashPassword, isPasswordCorrect } from '../../utils/password';
@@ -12,6 +18,7 @@ import { signAccessToken } from '../../utils/jwt';
 import { generateRefreshToken, hashToken } from '../../utils/refresh-token';
 import { authRepository } from './auth.repository';
 import { randomUUID } from 'node:crypto';
+import { verifyGoogleIdToken } from '../../integrations/google/google.client';
 
 const REFRESH_TTL_SECONDS = env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60;
 
@@ -39,16 +46,7 @@ export const authService = {
       );
     }
 
-    const accessToken = await signAccessToken({ id: user.id, role: user.role });
-    const refreshToken = generateRefreshToken();
-
-    await authRepository.saveToken({
-      tokenHash: hashToken(refreshToken),
-      userId: user.id,
-      familyId: randomUUID(),
-      ttlSeconds: REFRESH_TTL_SECONDS,
-    });
-
+    const { accessToken, refreshToken } = await createSession(user);
     return { user: toUserResponse(user), accessToken, refreshToken };
   },
 
@@ -95,6 +93,34 @@ export const authService = {
     return { accessToken, refreshToken };
   },
 
+  // Authenticate with Google
+  async authenticateWithGoogle({ idToken, role }: GoogleAuth): Promise<GoogleAuthResponse> {
+    const profile = await verifyGoogleIdToken(idToken);
+    let user = await usersService.findByGoogleId(profile.googleId);
+    let isNewUser = false;
+
+    if (!user) {
+      user = await usersService.findByEmail(profile.email);
+
+      if (user) {
+        throw new ConflictError(
+          'Email belongs to another account.',
+          ERROR_CODES.AUTH_GOOGLE_ACCOUNT_NOT_LINKED,
+        );
+      } else {
+        user = await usersService.create({
+          email: profile.email,
+          googleId: profile.googleId,
+          role,
+        });
+        isNewUser = true;
+      }
+    }
+
+    const { accessToken, refreshToken } = await createSession(user);
+    return { user: toUserResponse(user), accessToken, refreshToken, isNewUser };
+  },
+
   // Logout
   async logout(token: string) {
     const data = await authRepository.findToken(hashToken(token));
@@ -102,3 +128,17 @@ export const authService = {
     await authRepository.deleteFamily(data.familyId);
   },
 };
+
+async function createSession(user: User) {
+  const accessToken = await signAccessToken({ id: user.id, role: user.role });
+  const refreshToken = generateRefreshToken();
+
+  await authRepository.saveToken({
+    tokenHash: hashToken(refreshToken),
+    userId: user.id,
+    familyId: randomUUID(),
+    ttlSeconds: REFRESH_TTL_SECONDS,
+  });
+
+  return { accessToken, refreshToken };
+}
