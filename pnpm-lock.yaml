@@ -81,6 +81,9 @@ importers:
       vitest:
         specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      world-countries:
+        specifier: ^5.1.0
+        version: 5.1.0
 
 packages:
 
@@ -2770,6 +2773,9 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
+  world-countries@5.1.0:
+    resolution: {integrity: sha512-CXR6EBvTbArDlDDIWU3gfKb7Qk0ck2WNZ234b/A0vuecPzIfzzxH+O6Ejnvg1sT8XuiZjVlzOH0h08ZtaO7g0w==}
+
   wrap-ansi@10.0.2:
     resolution: {integrity: sha512-6OLRNZqRntVGBm26ghZ5eZhCuWWyOkRCSn8XsOIuq5stpCE/tjLbdozd93naILZig0lmD8ANfRwnhn0DLeXGlg==}
     engines: {node: '>=20'}
@@ -5444,6 +5450,8 @@ snapshots:
       '@cloudflare/workerd-linux-64': 1.20261002.1
       '@cloudflare/workerd-linux-arm64': 1.20261002.1
       '@cloudflare/workerd-windows-64': 1.20261002.1
+
+  world-countries@5.1.0: {}
 
   wrap-ansi@10.0.2:
     dependencies:

@@ -1,3 +1,5 @@
+import type { ProfileResponse, ProfileWithLocation } from './profile.types';
+
 export type Role = 'customer' | 'owner' | 'admin';
 export type SignupRole = Exclude<Role, 'admin'>;
 
@@ -8,6 +10,9 @@ export type User = {
   googleId: string | null;
   role: Role;
   createdAt: Date;
+};
+export type UserWithProfile = User & {
+  profile: ProfileWithLocation | null;
 };
 
 export type NewUser =
@@ -23,4 +28,7 @@ export type NewUser =
       passwordHash?: never;
       role: Role;
     };
+
+export type AuthUser = Pick<User, 'id' | 'role'>;
 export type UserResponse = Pick<User, 'id' | 'email' | 'role'>;
+export type MeResponse = UserResponse & { profile: ProfileResponse | null };

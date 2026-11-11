@@ -4,6 +4,7 @@ import app from '../src/app';
 import request from 'supertest';
 import { authRepository } from '../src/modules/auth/auth.repository';
 import { hashToken } from '../src/utils/refresh-token';
+import type { Char } from '@prisma/orm-postgres/target/codec-types';
 
 const createdEmails: string[] = [];
 const createdTokens: string[] = [];
@@ -33,7 +34,12 @@ export const loginUser = async () => {
   const refreshToken = cookieValue(res.headers['set-cookie'], 'refreshToken');
   trackToken(refreshToken);
 
-  return { email, refreshToken, accessToken: res.body.data.accessToken as string };
+  return {
+    email,
+    refreshToken,
+    accessToken: res.body.data.accessToken as string,
+    id: res.body.data.user.id as string,
+  };
 };
 
 export const logoutWith = (token: string) =>
@@ -45,14 +51,6 @@ export const deleteCreatedUsers = async () => {
   }
 };
 
-export const cleanup = async () => {
-  for (const token of createdTokens) {
-    const data = await authRepository.findToken(hashToken(token));
-    if (data) await authRepository.deleteFamily(data.familyId);
-  }
-  await deleteCreatedUsers();
-};
-
 export const refreshWith = (token: string) =>
   request(app).post(REFRESH_PATH).set('Cookie', `refreshToken=${token}`);
 
@@ -62,4 +60,15 @@ export const trackToken = (token: string) => {
 
 export const trackEmail = (email: string) => {
   createdEmails.push(email);
+};
+
+export const getTestCountry = () =>
+  db.orm.public.Country.where({ iso2Code: 'EG' as Char<2> }).first();
+
+export const cleanup = async () => {
+  for (const token of createdTokens) {
+    const data = await authRepository.findToken(hashToken(token));
+    if (data) await authRepository.deleteFamily(data.familyId);
+  }
+  await deleteCreatedUsers();
 };

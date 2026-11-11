@@ -1,15 +1,8 @@
-import type {
-  GoogleAuth,
-  GoogleAuthResponse,
-  LoginResponse,
-  LoginWithEmail,
-  SignupWithEmail,
-} from '../../types/auth.types';
-import type { User, UserResponse } from '../../types/user.types';
+import type { GoogleAuth, LoginWithEmail, SignupWithEmail } from '../../types/auth.types';
+import type { User } from '../../types/user.types';
 
 import { ConflictError } from '../../errors/conflict.error';
 import { hashPassword, isPasswordCorrect } from '../../utils/password';
-import { toUserResponse } from '../users/users.mapper';
 import { usersService } from '../users/users.service';
 import { ERROR_CODES } from '../../i18n';
 import { UnauthorizedError } from '../../errors/unauthorized.error';
@@ -24,18 +17,18 @@ const REFRESH_TTL_SECONDS = env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60;
 
 export const authService = {
   // Signup
-  async signup({ email, password, role }: SignupWithEmail): Promise<UserResponse> {
+  async signup({ email, password, role }: SignupWithEmail): Promise<User> {
     const isEmailExist = await usersService.isEmailExist(email);
     if (isEmailExist)
       throw new ConflictError('Email is already in use.', ERROR_CODES.AUTH_EMAIL_TAKEN);
 
     const passwordHash = await hashPassword(password);
     const user = await usersService.create({ email, role, passwordHash });
-    return toUserResponse(user);
+    return user;
   },
 
   // Login
-  async login({ email, password }: LoginWithEmail): Promise<LoginResponse> {
+  async login({ email, password }: LoginWithEmail) {
     const user = await usersService.findByEmail(email);
     const isValid = user?.passwordHash && (await isPasswordCorrect(password, user.passwordHash));
 
@@ -47,7 +40,7 @@ export const authService = {
     }
 
     const { accessToken, refreshToken } = await createSession(user);
-    return { user: toUserResponse(user), accessToken, refreshToken };
+    return { user, accessToken, refreshToken };
   },
 
   // Refresh token
@@ -94,7 +87,7 @@ export const authService = {
   },
 
   // Authenticate with Google
-  async authenticateWithGoogle({ idToken, role }: GoogleAuth): Promise<GoogleAuthResponse> {
+  async authenticateWithGoogle({ idToken, role }: GoogleAuth) {
     const profile = await verifyGoogleIdToken(idToken);
     let user = await usersService.findByGoogleId(profile.googleId);
     let isNewUser = false;
@@ -118,7 +111,7 @@ export const authService = {
     }
 
     const { accessToken, refreshToken } = await createSession(user);
-    return { user: toUserResponse(user), accessToken, refreshToken, isNewUser };
+    return { user, accessToken, refreshToken, isNewUser };
   },
 
   // Logout
