@@ -11,6 +11,7 @@ const envSchema = z.object({
   REDIS_URL: z.string(),
   FRONTEND_URL: z.url(),
   COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']),
+  GOOGLE_CLIENT_ID: z.string(),
 });
 
 export const env = envSchema.parse(process.env);

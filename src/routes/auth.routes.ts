@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { loginWithEmailSchema, signupWithEmailSchema } from '../schemas/auth.schema';
+import {
+  googleAuthSchema,
+  loginWithEmailSchema,
+  signupWithEmailSchema,
+} from '../schemas/auth.schema';
 import { validateRequest } from '../middleware/validate-request';
 import { authController } from '../modules/auth/auth.controller';
 
@@ -10,6 +14,6 @@ router.post('/login', validateRequest(loginWithEmailSchema), authController.logi
 router.post('/refresh', authController.refresh);
 router.post('/logout', authController.logout);
 
-// router.post('/google', (req, res) => {});
+router.post('/google', validateRequest(googleAuthSchema), authController.googleAuth);
 
 export default router;

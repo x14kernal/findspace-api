@@ -51,7 +51,7 @@ model User {
   googleId          VarChar?             @unique @map("google_id") // multiple NULLs allowed
   lastLoginAt       TimestamptzJsDate?            @map("last_login_at")
   createdAt         TimestamptzJsDate             @default(now()) @map("created_at")
-  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+  updatedAt         temporal.updatedAtJsDate() @map("updated_at")
 
 
   profile           Profile?
@@ -73,7 +73,7 @@ model Profile {
   avatarUrl   VarChar?             @map("avatar_url")
   phoneNumber VarChar?             @map("phone_number")
   createdAt   TimestamptzJsDate             @default(now()) @map("created_at")
-  updatedAt temporal.updatedAtJsDate() @map("updated_at")
+  updatedAt   temporal.updatedAtJsDate() @map("updated_at")
 
   user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   location    Location             @relation(fields: [locationId], references: [id], onDelete: Restrict)

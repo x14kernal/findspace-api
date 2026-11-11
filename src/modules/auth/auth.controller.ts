@@ -4,17 +4,25 @@ import { sendSuccess, sendSuccessWithoutData } from '../../responses/response-he
 import { ERROR_CODES, SUCCESS_CODES } from '../../i18n';
 import { REFRESH_COOKIE, refreshCookieOptions } from '../../utils/cookies';
 import { UnauthorizedError } from '../../errors/unauthorized.error';
+import { toUserResponse } from '../users/users.mapper';
 
 export const authController = {
   async signup(req: Request, res: Response) {
     const data = await authService.signup(req.body);
-    sendSuccess(res, data, { status: 201, code: SUCCESS_CODES.AUTH_SIGNUP_SUCCESS });
+    sendSuccess(res, toUserResponse(data), {
+      status: 201,
+      code: SUCCESS_CODES.AUTH_SIGNUP_SUCCESS,
+    });
   },
 
   async login(req: Request, res: Response) {
     const { user, accessToken, refreshToken } = await authService.login(req.body);
     res.cookie(REFRESH_COOKIE, refreshToken, refreshCookieOptions);
-    sendSuccess(res, { user, accessToken }, { code: SUCCESS_CODES.AUTH_LOGIN_SUCCESS });
+    sendSuccess(
+      res,
+      { user: toUserResponse(user), accessToken },
+      { code: SUCCESS_CODES.AUTH_LOGIN_SUCCESS },
+    );
   },
 
   async refresh(req: Request, res: Response) {
@@ -35,6 +43,21 @@ export const authController = {
       res.clearCookie(REFRESH_COOKIE, refreshCookieOptions);
       throw err;
     }
+  },
+
+  async googleAuth(req: Request, res: Response) {
+    const { user, accessToken, refreshToken, isNewUser } = await authService.authenticateWithGoogle(
+      req.body,
+    );
+
+    res.cookie(REFRESH_COOKIE, refreshToken, refreshCookieOptions);
+    sendSuccess(
+      res,
+      { user: toUserResponse(user), accessToken },
+      isNewUser
+        ? { status: 201, code: SUCCESS_CODES.AUTH_SIGNUP_SUCCESS }
+        : { status: 200, code: SUCCESS_CODES.AUTH_LOGIN_SUCCESS },
+    );
   },
 
   async logout(req: Request, res: Response) {
