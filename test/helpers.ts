@@ -1,10 +1,18 @@
 import { db } from '../src/prisma/db';
-import { LOGIN_PATH, LOGOUT_PATH, REFRESH_PATH, SIGNUP_PATH } from './constants';
+import {
+  AVATAR_PATH,
+  CREATE_PROFILE_PATH,
+  LOGIN_PATH,
+  LOGOUT_PATH,
+  REFRESH_PATH,
+  SIGNUP_PATH,
+} from './constants';
 import app from '../src/app';
 import request from 'supertest';
 import { authRepository } from '../src/modules/auth/auth.repository';
 import { hashToken } from '../src/utils/refresh-token';
 import type { Char } from '@prisma/orm-postgres/target/codec-types';
+import sharp from 'sharp';
 
 const createdEmails: string[] = [];
 const createdTokens: string[] = [];
@@ -42,6 +50,25 @@ export const loginUser = async () => {
   };
 };
 
+export const userWithProfile = async () => {
+  const { accessToken } = await loginUser();
+  const country = await getTestCountry();
+  const body = {
+    firstName: 'Muhammed',
+    lastName: 'Ahmed',
+    bio: 'Backend learner',
+    phoneNumber: '+201001234567',
+    location: { countryId: country!.id },
+  };
+
+  await request(app)
+    .post(CREATE_PROFILE_PATH)
+    .set('Authorization', `Bearer ${accessToken}`)
+    .send(body);
+
+  return { accessToken, body, country };
+};
+
 export const logoutWith = (token: string) =>
   request(app).post(LOGOUT_PATH).set('Cookie', `refreshToken=${token}`);
 
@@ -71,4 +98,20 @@ export const cleanup = async () => {
     if (data) await authRepository.deleteFamily(data.familyId);
   }
   await deleteCreatedUsers();
+};
+
+export const makePng = (width = 300, height = 300) =>
+  sharp({ create: { width, height, channels: 3, background: '#3b82f6' } })
+    .png()
+    .toBuffer();
+
+export const uploadAvatar = async (token: string) => {
+  const png = await makePng();
+  return request(app)
+    .put(AVATAR_PATH)
+    .set('Authorization', `Bearer ${token}`)
+    .attach('avatar', png, {
+      filename: 'me.png',
+      contentType: 'image/png',
+    });
 };

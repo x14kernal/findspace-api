@@ -11,7 +11,7 @@
 | POST   | `/me/profile`                                                                | Required                         | Create the current user's profile and location.                               | Done   |
 | PATCH  | `/me/profile`                                                                | Required                         | Update the current user's profile. Send only the fields to change.            | Done   |
 | DELETE | `/me`                                                                        | Required                         | Delete the current user's account.                                            |        |
-| PUT    | `/me/avatar`                                                                 | Required                         | Upload or replace the profile image.                                          |        |
+| PUT    | `/me/avatar`                                                                 | Required                         | Upload or replace the profile image.                                          | Done   |
 | GET    | `/me/notifications`                                                          | Required                         | List the current user's notifications.                                        |        |
 | PATCH  | `/me/notifications/{notificationId}/read`                                    | Required                         | Mark a notification as read.                                                  |        |
 | GET    | `/countries`                                                                 | Public                           | List available countries.                                                     |        |

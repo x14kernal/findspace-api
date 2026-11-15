@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { redis } from '../../src/database/redis';
-import { cleanup, getTestCountry, loginUser } from '../helpers';
+import { cleanup, getTestCountry, loginUser, userWithProfile } from '../helpers';
 import request from 'supertest';
 import app from '../../src/app';
 import { CREATE_PROFILE_PATH, ME_PATH, UPDATE_PROFILE_PATH } from '../constants';
@@ -23,25 +23,6 @@ const buildBody = async (): Promise<CreateProfileInput> => {
     lastName: 'Ahmed',
     location: { countryId: country!.id },
   };
-};
-
-const userWithProfile = async () => {
-  const { accessToken } = await loginUser();
-  const country = await getTestCountry();
-  const body = {
-    firstName: 'Muhammed',
-    lastName: 'Ahmed',
-    bio: 'Backend learner',
-    phoneNumber: '+201001234567',
-    location: { countryId: country!.id },
-  };
-
-  await request(app)
-    .post(CREATE_PROFILE_PATH)
-    .set('Authorization', `Bearer ${accessToken}`)
-    .send(body);
-
-  return { accessToken, body, country };
 };
 
 describe('Get /me', () => {

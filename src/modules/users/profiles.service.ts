@@ -1,13 +1,16 @@
+import { randomUUID } from 'node:crypto';
 import { ConflictError } from '../../errors/conflict.error';
 import { NotFoundError } from '../../errors/not-found.error';
 import { UnprocessableEntityError } from '../../errors/unprocessable-entity.error';
 import { ERROR_CODES } from '../../i18n';
 import { db } from '../../prisma/db';
 import type { CreateProfileInput, Profile, UpdateProfileInput } from '../../types/profile.types';
+import { processAvatar } from '../../utils/image';
 
 import { countriesService } from '../countries/countries.service';
 import { locationsService } from '../locations/locations.service';
 import { profilesRepository } from './profiles.repository';
+import { storage } from '../../integrations/storage/storage.client';
 
 export const profilesService = {
   findByUserId(id: string): Promise<Profile | null> {
@@ -63,5 +66,35 @@ export const profilesService = {
       }
       return updated;
     });
+  },
+
+  async updateAvatar(userId: string, buffer: Buffer): Promise<Profile> {
+    const profile = await profilesRepository.findByUserId(userId);
+    if (!profile) {
+      throw new NotFoundError('Profile not found.', ERROR_CODES.PROFILE_NOT_FOUND);
+    }
+
+    const body = await processAvatar(buffer);
+    const key = `avatars/${randomUUID()}.webp`;
+
+    await storage.upload({ key, body, contentType: 'image/webp' });
+
+    let updated: Profile;
+    try {
+      const result = await profilesRepository.updateAvatarUrl(
+        profile.id,
+        storage.getPublicUrl(key),
+      );
+      if (!result) throw new NotFoundError('Profile not found.', ERROR_CODES.PROFILE_NOT_FOUND);
+      updated = result;
+    } catch (err) {
+      await storage.remove(key); // undo the upload
+      throw err;
+    }
+
+    const oldKey = profile.avatarUrl ? storage.getKeyFromUrl(profile.avatarUrl) : null;
+    if (oldKey) await storage.remove(oldKey);
+
+    return updated;
   },
 };

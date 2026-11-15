@@ -1,9 +1,10 @@
 import type { Request, Response } from 'express';
 import { usersService } from './users.service';
-import { SUCCESS_CODES } from '../../i18n';
+import { ERROR_CODES, SUCCESS_CODES } from '../../i18n';
 import { sendSuccess } from '../../responses/response-helpers';
 import { profilesService } from './profiles.service';
 import { toMeResponse } from './users.mapper';
+import { BadRequestError } from '../../errors/bad-request.error';
 
 export const usersController = {
   async getMe(req: Request, res: Response) {
@@ -29,6 +30,16 @@ export const usersController = {
     sendSuccess(res, toMeResponse(data), {
       status: 200,
       code: SUCCESS_CODES.PROFILE_UPDATE_SUCCESS,
+    });
+  },
+
+  async updateAvatar(req: Request, res: Response) {
+    if (!req.file) throw new BadRequestError('The file is missed.', ERROR_CODES.FILE_MISSING);
+    await profilesService.updateAvatar(req.user!.id, req.file.buffer);
+    const data = await usersService.getMeOrThrow(req.user!.id);
+    sendSuccess(res, toMeResponse(data), {
+      status: 200,
+      code: SUCCESS_CODES.PROFILE_AVATAR_UPDATE_SUCCESS,
     });
   },
 };
