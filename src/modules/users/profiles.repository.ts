@@ -28,4 +28,14 @@ export const profilesRepository = {
   update(profileId: string, data: UpdateProfile, client: DbClient = db): Promise<Profile | null> {
     return client.orm.public.Profile.where({ id: profileId }).update(data);
   },
+
+  updateAvatarUrl(
+    profileId: string,
+    avatarUrl: string,
+    client: DbClient = db,
+  ): Promise<Profile | null> {
+    return client.orm.public.Profile.where({ id: profileId }).update({
+      avatarUrl,
+    });
+  },
 };
