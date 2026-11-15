@@ -8,3 +8,5 @@ export const ME_PATH = '/api/me';
 export const AVATAR_PATH = '/api/me/avatar';
 export const CREATE_PROFILE_PATH = '/api/me/profile';
 export const UPDATE_PROFILE_PATH = '/api/me/profile';
+
+export const GET_COUNTRIES_PATH = '/api/countries';
