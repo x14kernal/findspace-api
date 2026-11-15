@@ -14,7 +14,7 @@
 | PUT    | `/me/avatar`                                                                 | Required                         | Upload or replace the profile image.                                          | Done   |
 | GET    | `/me/notifications`                                                          | Required                         | List the current user's notifications.                                        |        |
 | PATCH  | `/me/notifications/{notificationId}/read`                                    | Required                         | Mark a notification as read.                                                  |        |
-| GET    | `/countries`                                                                 | Public                           | List available countries.                                                     |        |
+| GET    | `/countries`                                                                 | Public                           | List available countries.                                                     | Done   |
 | GET    | `/rooms`                                                                     | Public                           | List rooms.                                                                   |        |
 | GET    | `/rooms?search={query}`                                                      | Public                           | Search rooms by query.                                                        |        |
 | GET    | `/rooms?date={date}&start_at={time}&capacity={capacity}&features={features}` | Public                           | Filter rooms by date, start time, capacity, and features.                     |        |
