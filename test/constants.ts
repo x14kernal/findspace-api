@@ -13,3 +13,4 @@ export const GET_COUNTRIES_PATH = '/api/countries';
 
 export const GET_MINE_WORKSPACE_PATH = '/api/owner/workspace';
 export const CREATE_WORKSPACE_PATH = '/api/owner/workspace';
+export const UPDATE_WORKSPACE_PATH = '/api/owner/workspace';

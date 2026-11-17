@@ -1,7 +1,7 @@
 import type z from 'zod';
 import type { Exact } from './common';
 import type { LocationResponse, LocationWithCountry } from './location.types';
-import type { createWorkspaceSchema } from '../schemas/workspace.schema';
+import type { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas/workspace.schema';
 
 export type WorkspaceStatus = 'active' | 'inactive';
 
@@ -24,14 +24,15 @@ export type WorkspaceWithLocation = Workspace & {
 };
 
 export type CreateWorkspaceInput = Exact<z.infer<typeof createWorkspaceSchema>>;
-
 export type NewWorkspace = CreateWorkspaceInput & {
   ownerId: string;
   slug: string;
   status: WorkspaceStatus;
 };
-
 export type NewWorkspaceRow = Omit<NewWorkspace, 'location'> & { locationId: string };
+
+export type UpdateWorkspaceInput = Exact<z.infer<typeof updateWorkspaceSchema>>;
+export type UpdateWorkspaceRow = Omit<UpdateWorkspaceInput, 'location'>;
 
 export type WorkspaceResponse = {
   id: string;

@@ -5,6 +5,8 @@ import { db } from '../../prisma/db';
 import type {
   CreateWorkspaceInput,
   NewWorkspaceRow,
+  UpdateWorkspaceInput,
+  UpdateWorkspaceRow,
   WorkspaceWithLocation,
 } from '../../types/workspace.types';
 import { slugify } from '../../utils/slugify';
@@ -55,5 +57,35 @@ export const workspacesService = {
       console.log(error);
       throw error;
     }
+  },
+  async updateForOwner(
+    ownerId: string,
+    data: UpdateWorkspaceInput,
+  ): Promise<WorkspaceWithLocation> {
+    return await db.transaction(async (tx) => {
+      const ownerWorkspace = await workspacesRepository.findByOwnerId(ownerId, tx);
+      if (!ownerWorkspace) {
+        throw new NotFoundError('The workspace not found.', ERROR_CODES.WORKSPACE_NOT_FOUND);
+      }
+
+      const { location, ...updateWordpaceRow } = data;
+
+      if (location && Object.keys(location).length > 0) {
+        await locationsService.update(ownerWorkspace.locationId, location, tx);
+      }
+
+      if (Object.keys(updateWordpaceRow).length > 0) {
+        const updated = await workspacesRepository.update(ownerWorkspace.id, updateWordpaceRow, tx);
+        if (!updated)
+          throw new NotFoundError('The workspace not found.', ERROR_CODES.WORKSPACE_NOT_FOUND);
+      }
+
+      const workspace = await workspacesRepository.findByOwnerIdWithLocation(ownerId, tx);
+      if (!workspace) {
+        throw new NotFoundError('The workspace not found.', ERROR_CODES.WORKSPACE_NOT_FOUND);
+      }
+
+      return workspace;
+    });
   },
 };

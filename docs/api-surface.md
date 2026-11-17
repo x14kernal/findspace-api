@@ -27,7 +27,7 @@
 | PATCH  | `/bookings/{bookingId}/cancel`                                               | Required (Customer or Owner)     | Cancel a booking the user is allowed to cancel. Owners must provide a reason. |        |
 | POST   | `/owner/workspace`                                                           | Required (Owner)                 | Create the owner's workspace.                                                 | Done   |
 | GET    | `/owner/workspace`                                                           | Required (Owner)                 | View the owner's workspace.                                                   | Done   |
-| PATCH  | `/owner/workspace`                                                           | Required (Owner)                 | Update the owner's workspace.                                                 |        |
+| PATCH  | `/owner/workspace`                                                           | Required (Owner)                 | Update the owner's workspace.                                                 | Done   |
 | DELETE | `/owner/workspace`                                                           | Required (Owner)                 | Delete the owner's workspace.                                                 |        |
 | POST   | `/owner/workspace/images`                                                    | Required (Owner)                 | Upload workspace images.                                                      |        |
 | DELETE | `/owner/workspace/images/{imageId}`                                          | Required (Owner)                 | Delete a workspace image.                                                     |        |
