@@ -19,4 +19,11 @@ export const workspacesController = {
       code: SUCCESS_CODES.WORKSPACE_CREATED,
     });
   },
+  async update(req: Request, res: Response) {
+    const data = await workspacesService.updateForOwner(req.user!.id, req.body);
+    sendSuccess(res, toWorkspaceResponse(data), {
+      status: 200,
+      code: SUCCESS_CODES.WORKSPACE_UPDATED,
+    });
+  },
 };

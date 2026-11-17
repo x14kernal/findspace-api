@@ -3,7 +3,7 @@ import { authenticate } from '../middleware/authenticate';
 import { authorize } from '../middleware/authorize';
 import { workspacesController } from '../modules/workspaces/workspaces.controller';
 
-import { createWorkspaceSchema } from '../schemas/workspace.schema';
+import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas/workspace.schema';
 import { validateRequest } from '../middleware/validate-request';
 
 const router = Router();
@@ -15,6 +15,13 @@ router.post(
   authorize('owner'),
   validateRequest(createWorkspaceSchema),
   workspacesController.create,
+);
+router.patch(
+  '/',
+  authenticate,
+  authorize('owner'),
+  validateRequest(updateWorkspaceSchema),
+  workspacesController.update,
 );
 
 export default router;

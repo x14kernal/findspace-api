@@ -17,3 +17,8 @@ export const createWorkspaceSchema = z.object({
   timezone: z.string().refine(isValidTimezone),
   location: createLocationSchema,
 });
+
+export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
+  description: z.string().trim().min(1).max(1000).nullable().optional(),
+  location: createLocationSchema.partial().optional(),
+});

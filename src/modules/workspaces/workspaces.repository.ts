@@ -3,6 +3,7 @@ import { db } from '../../prisma/db';
 import type { DbClient } from '../../types/common';
 import type {
   NewWorkspaceRow,
+  UpdateWorkspaceRow,
   Workspace,
   WorkspaceWithLocation,
 } from '../../types/workspace.types';
@@ -42,5 +43,13 @@ export const workspacesRepository = {
 
   create(data: NewWorkspaceRow, client: DbClient = db): Promise<Workspace> {
     return client.orm.public.Workspace.create({ ...data, timezone: data.timezone as Varchar<50> });
+  },
+
+  update(id: string, data: UpdateWorkspaceRow, client: DbClient = db): Promise<Workspace | null> {
+    const { timezone, ...rest } = data;
+    return client.orm.public.Workspace.where({ id }).update({
+      ...rest,
+      ...(timezone !== undefined && { timezone: timezone as Varchar<50> }),
+    });
   },
 };
