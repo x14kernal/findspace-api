@@ -10,3 +10,6 @@ export const CREATE_PROFILE_PATH = '/api/me/profile';
 export const UPDATE_PROFILE_PATH = '/api/me/profile';
 
 export const GET_COUNTRIES_PATH = '/api/countries';
+
+export const GET_MINE_WORKSPACE_PATH = '/api/owner/workspace';
+export const CREATE_WORKSPACE_PATH = '/api/owner/workspace';

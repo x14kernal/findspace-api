@@ -16,6 +16,7 @@ import sharp from 'sharp';
 
 const createdEmails: string[] = [];
 const createdTokens: string[] = [];
+const createdWorkspaces: string[] = [];
 
 export const newEmail = () => {
   const email = `test-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
@@ -32,9 +33,9 @@ export const cookieValue = (setCookie: string | string[] | undefined, name: stri
   return value;
 };
 
-export const loginUser = async () => {
+export const loginUser = async (role: string = 'customer') => {
   const email = newEmail();
-  const body = { email, password: '12345678' };
+  const body = { email, password: '12345678', role };
 
   await request(app).post(SIGNUP_PATH).send(body);
   const res = await request(app).post(LOGIN_PATH).send(body);
@@ -50,8 +51,8 @@ export const loginUser = async () => {
   };
 };
 
-export const userWithProfile = async () => {
-  const { accessToken } = await loginUser();
+export const userWithProfile = async (role: string = 'customer') => {
+  const { accessToken } = await loginUser(role);
   const country = await getTestCountry();
   const body = {
     firstName: 'Muhammed',
@@ -69,8 +70,9 @@ export const userWithProfile = async () => {
   return { accessToken, body, country };
 };
 
-export const logoutWith = (token: string) =>
-  request(app).post(LOGOUT_PATH).set('Cookie', `refreshToken=${token}`);
+export const logoutWith = (token: string) => {
+  return request(app).post(LOGOUT_PATH).set('Cookie', `refreshToken=${token}`);
+};
 
 export const deleteCreatedUsers = async () => {
   for (const email of createdEmails) {
@@ -78,8 +80,9 @@ export const deleteCreatedUsers = async () => {
   }
 };
 
-export const refreshWith = (token: string) =>
-  request(app).post(REFRESH_PATH).set('Cookie', `refreshToken=${token}`);
+export const refreshWith = (token: string) => {
+  return request(app).post(REFRESH_PATH).set('Cookie', `refreshToken=${token}`);
+};
 
 export const trackToken = (token: string) => {
   createdTokens.push(token);
@@ -89,14 +92,40 @@ export const trackEmail = (email: string) => {
   createdEmails.push(email);
 };
 
-export const getTestCountry = () =>
-  db.orm.public.Country.where({ iso2Code: 'EG' as Char<2> }).first();
+export const getTestCountry = () => {
+  return db.orm.public.Country.where({ iso2Code: 'EG' as Char<2> }).first();
+};
+
+export const trackWorkspace = (id: string) => {
+  createdWorkspaces.push(id);
+};
+
+export const deleteWorkspacesAndLocations = async () => {
+  for (const id of createdWorkspaces) {
+    const ws = await db.orm.public.Workspace.where({ id }).first();
+    await db.orm.public.Workspace.where({ id }).delete();
+    if (ws) await db.orm.public.Location.where({ id: ws.locationId }).delete();
+  }
+};
+
+export const validWorkspaceBody = async (overrides: Record<string, unknown> = {}) => {
+  const country = await getTestCountry();
+  return {
+    name: 'Test Space',
+    description: 'A quiet place to work',
+    floorCount: 3,
+    timezone: 'Africa/Cairo',
+    location: { countryId: country!.id, city: 'Cairo', area: 'Maadi' },
+    ...overrides,
+  };
+};
 
 export const cleanup = async () => {
   for (const token of createdTokens) {
     const data = await authRepository.findToken(hashToken(token));
     if (data) await authRepository.deleteFamily(data.familyId);
   }
+  await deleteWorkspacesAndLocations();
   await deleteCreatedUsers();
 };
 
