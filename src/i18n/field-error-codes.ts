@@ -5,6 +5,7 @@ export const FIELD_ERROR_CODES = {
   INVALID_FORMAT: 'INVALID_FORMAT',
   INVALID_VALUE: 'INVALID_VALUE',
   INVALID: 'INVALID',
+  INVALID_TIMEZONE: 'INVALID_TIMEZONE',
 } as const;
 
 export type FieldErrorCode = (typeof FIELD_ERROR_CODES)[keyof typeof FIELD_ERROR_CODES];

@@ -25,8 +25,8 @@
 | GET    | `/me/bookings`                                                               | Required (Customer)              | List the current customer's bookings.                                         |        |
 | GET    | `/bookings/{bookingId}`                                                      | Required (Customer or Owner)     | View a booking the user is allowed to access.                                 |        |
 | PATCH  | `/bookings/{bookingId}/cancel`                                               | Required (Customer or Owner)     | Cancel a booking the user is allowed to cancel. Owners must provide a reason. |        |
-| POST   | `/owner/workspace`                                                           | Required (Owner)                 | Create the owner's workspace.                                                 |        |
-| GET    | `/owner/workspace`                                                           | Required (Owner)                 | View the owner's workspace.                                                   |        |
+| POST   | `/owner/workspace`                                                           | Required (Owner)                 | Create the owner's workspace.                                                 | Done   |
+| GET    | `/owner/workspace`                                                           | Required (Owner)                 | View the owner's workspace.                                                   | Done   |
 | PATCH  | `/owner/workspace`                                                           | Required (Owner)                 | Update the owner's workspace.                                                 |        |
 | DELETE | `/owner/workspace`                                                           | Required (Owner)                 | Delete the owner's workspace.                                                 |        |
 | POST   | `/owner/workspace/images`                                                    | Required (Owner)                 | Upload workspace images.                                                      |        |

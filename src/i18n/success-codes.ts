@@ -16,6 +16,10 @@ export const SUCCESS_CODES = {
 
   // Countries
   COUNTRIES_FETCH_SUCCESS: 'COUNTRIES_FETCH_SUCCESS',
+
+  // Workspace
+  WORKSPACE_CREATED: 'WORKSPACE_CREATED',
+  WORKSPACE_FETCHED: 'WORKSPACE_FETCHED',
 } as const;
 
 export type SuccessCode = (typeof SUCCESS_CODES)[keyof typeof SUCCESS_CODES];
