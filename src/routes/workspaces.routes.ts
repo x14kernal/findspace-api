@@ -5,6 +5,8 @@ import { workspacesController } from '../modules/workspaces/workspaces.controlle
 
 import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas/workspace.schema';
 import { validateRequest } from '../middleware/validate-request';
+import { workspaceAvailabilitiesController } from '../modules/workspace-availabilities/workspace-availabilities.controller';
+import { replaceWorkspaceAvailabilitiesSchema } from '../schemas/workspace-availability.schema';
 
 const router = Router();
 
@@ -22,6 +24,20 @@ router.patch(
   authorize('owner'),
   validateRequest(updateWorkspaceSchema),
   workspacesController.update,
+);
+
+router.get(
+  '/availability',
+  authenticate,
+  authorize('owner'),
+  workspaceAvailabilitiesController.get,
+);
+router.put(
+  '/availability',
+  authenticate,
+  authorize('owner'),
+  validateRequest(replaceWorkspaceAvailabilitiesSchema),
+  workspaceAvailabilitiesController.replace,
 );
 
 export default router;

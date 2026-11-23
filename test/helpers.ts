@@ -2,6 +2,7 @@ import { db } from '../src/prisma/db';
 import {
   AVATAR_PATH,
   CREATE_PROFILE_PATH,
+  CREATE_WORKSPACE_PATH,
   LOGIN_PATH,
   LOGOUT_PATH,
   REFRESH_PATH,
@@ -119,6 +120,24 @@ export const validWorkspaceBody = async (overrides: Record<string, unknown> = {}
     ...overrides,
   };
 };
+
+export const addWorkspace = async (accessToken: string) => {
+  const body = await validWorkspaceBody();
+  const c = await request(app)
+    .post(CREATE_WORKSPACE_PATH)
+    .set('Authorization', `Bearer ${accessToken}`)
+    .send(body);
+  trackWorkspace(c.body.data.id);
+  return c;
+};
+
+export const validAvailabilityBody = (overrides: Record<string, unknown> = {}) => ({
+  availabilities: [
+    { dayOfWeek: '1', startAt: '09:00', endAt: '17:00' },
+    { dayOfWeek: '2', startAt: '09:00', endAt: '17:00' },
+  ],
+  ...overrides,
+});
 
 export const cleanup = async () => {
   for (const token of createdTokens) {

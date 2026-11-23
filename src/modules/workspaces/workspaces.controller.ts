@@ -26,4 +26,6 @@ export const workspacesController = {
       code: SUCCESS_CODES.WORKSPACE_UPDATED,
     });
   },
+
+  async replaceAvailability(req: Request, res: Response) {},
 };
