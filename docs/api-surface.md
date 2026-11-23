@@ -37,8 +37,8 @@
 | GET    | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | View a room owned by the current user.                                        |        |
 | PATCH  | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | Update a room owned by the current user.                                      |        |
 | DELETE | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | Delete a room owned by the current user.                                      |        |
-| GET    | `/owner/workspace/availability`                                              | Required (Owner)                 | View workspace availability.                                                  |        |
-| PUT    | `/owner/workspace/availability`                                              | Required (Owner)                 | Replace workspace availability.                                               |        |
+| GET    | `/owner/workspace/availability`                                              | Required (Owner)                 | View workspace availability.                                                  | Done   |
+| PUT    | `/owner/workspace/availability`                                              | Required (Owner)                 | Replace workspace availability.                                               | Done   |
 | GET    | `/owner/rooms/{roomId}/availability`                                         | Required (Owner)                 | View room availability.                                                       |        |
 | PUT    | `/owner/rooms/{roomId}/availability`                                         | Required (Owner)                 | Replace room availability.                                                    |        |
 | GET    | `/owner/rooms/{roomId}/unavailability`                                       | Required (Owner)                 | List blocked room times.                                                      |        |
