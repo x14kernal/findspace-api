@@ -35,8 +35,8 @@
 | POST   | `/owner/rooms`                                                               | Required (Owner)                 | Create a room.                                                                | Done   |
 | GET    | `/owner/rooms`                                                               | Required (Owner)                 | List the owner's rooms.                                                       | Done   |
 | GET    | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | View a room owned by the current user.                                        | Done   |
-| PATCH  | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | Update a room owned by the current user.                                      |        |
-| DELETE | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | Delete a room owned by the current user.                                      |        |
+| PATCH  | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | Update a room owned by the current user.                                      | Done   |
+| DELETE | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | Delete a room owned by the current user.                                      | Done   |
 | GET    | `/owner/workspace/availability`                                              | Required (Owner)                 | View workspace availability.                                                  | Done   |
 | PUT    | `/owner/workspace/availability`                                              | Required (Owner)                 | Replace workspace availability.                                               | Done   |
 | GET    | `/owner/rooms/{roomId}/availability`                                         | Required (Owner)                 | View room availability.                                                       |        |

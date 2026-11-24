@@ -1,7 +1,7 @@
 import type { Numeric, Varchar } from '@prisma/orm-postgres/target/codec-types';
 import { db } from '../../prisma/db';
 import type { DbClient } from '../../types/common';
-import type { NewRoomRow, Room } from '../../types/room.types';
+import type { NewRoomRow, Room, UpdateRoomRow } from '../../types/room.types';
 
 export const roomsRepository = {
   findAllByWorkspaceId(workspaceId: string, client: DbClient = db): Promise<Room[]> {
@@ -27,6 +27,16 @@ export const roomsRepository = {
     return client.orm.public.Room.where({ workspaceId, code: code as Varchar<25> }).first();
   },
 
+  async findHighestFloorNumberByWorkspaceId(
+    workspaceId: string,
+    client: DbClient,
+  ): Promise<number | null> {
+    const room = await client.orm.public.Room.where({ workspaceId })
+      .orderBy((r) => r.floorNumber.desc())
+      .first();
+    return room?.floorNumber ?? null;
+  },
+
   create(data: NewRoomRow, client: DbClient = db): Promise<Room> {
     return client.orm.public.Room.create({
       ...data,
@@ -35,5 +45,24 @@ export const roomsRepository = {
       widthM: data.widthM as Numeric<4, 2>,
       pricePerHour: data.pricePerHour as Numeric<12, 2>,
     });
+  },
+
+  update(
+    roomId: string,
+    workspaceId: string,
+    data: UpdateRoomRow,
+    client: DbClient = db,
+  ): Promise<Room | null> {
+    const { code, lengthM, widthM, pricePerHour, ...rest } = data;
+    return client.orm.public.Room.where({ id: roomId, workspaceId }).update({
+      ...rest,
+      ...(code !== undefined && { code: code as Varchar<25> }),
+      ...(lengthM !== undefined && { lengthM: lengthM as Numeric<4, 2> }),
+      ...(widthM !== undefined && { widthM: widthM as Numeric<4, 2> }),
+      ...(pricePerHour !== undefined && { pricePerHour: pricePerHour as Numeric<12, 2> }),
+    });
+  },
+  remove(id: string, workspaceId: string, client: DbClient = db): Promise<Room | null> {
+    return client.orm.public.Room.where({ id, workspaceId }).delete();
   },
 };
