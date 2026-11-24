@@ -17,3 +17,7 @@ export const UPDATE_WORKSPACE_PATH = '/api/owner/workspace';
 
 export const GET_WORKSPACE_AVAILABILITY_PATH = '/api/owner/workspace/availability';
 export const REPLACE_WORKSPACE_AVAILABILITY_PATH = '/api/owner/workspace/availability';
+
+export const GET_ROOM_PATH = '/api/owner/rooms';
+export const GET_ROOMS_PATH = '/api/owner/rooms';
+export const CREATE_ROOM_PATH = '/api/owner/rooms';

@@ -7,6 +7,7 @@ import {
   LOGOUT_PATH,
   REFRESH_PATH,
   SIGNUP_PATH,
+  CREATE_ROOM_PATH,
 } from './constants';
 import app from '../src/app';
 import request from 'supertest';
@@ -14,6 +15,7 @@ import { authRepository } from '../src/modules/auth/auth.repository';
 import { hashToken } from '../src/utils/refresh-token';
 import type { Char } from '@prisma/orm-postgres/target/codec-types';
 import sharp from 'sharp';
+import { randomBytes } from 'node:crypto';
 
 const createdEmails: string[] = [];
 const createdTokens: string[] = [];
@@ -138,6 +140,24 @@ export const validAvailabilityBody = (overrides: Record<string, unknown> = {}) =
   ],
   ...overrides,
 });
+
+export const validRoomBody = (overrides: Record<string, unknown> = {}) => ({
+  code: randomBytes(3).toString('hex').toUpperCase(),
+  pricePerHour: '120',
+  capacity: 4,
+  floorNumber: 1,
+  widthM: '5.00',
+  lengthM: '4.00',
+  ...overrides,
+});
+
+export const addRoom = async (accessToken: string, overrides = {}) => {
+  const res = await request(app)
+    .post(CREATE_ROOM_PATH)
+    .set('Authorization', `Bearer ${accessToken}`)
+    .send(validRoomBody(overrides));
+  return res.body.data;
+};
 
 export const cleanup = async () => {
   for (const token of createdTokens) {
