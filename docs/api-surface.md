@@ -32,9 +32,9 @@
 | POST   | `/owner/workspace/images`                                                    | Required (Owner)                 | Upload workspace images.                                                      |        |
 | DELETE | `/owner/workspace/images/{imageId}`                                          | Required (Owner)                 | Delete a workspace image.                                                     |        |
 | PATCH  | `/owner/workspace/images/{imageId}/primary`                                  | Required (Owner)                 | Set the primary workspace image.                                              |        |
-| POST   | `/owner/rooms`                                                               | Required (Owner)                 | Create a room.                                                                |        |
-| GET    | `/owner/rooms`                                                               | Required (Owner)                 | List the owner's rooms.                                                       |        |
-| GET    | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | View a room owned by the current user.                                        |        |
+| POST   | `/owner/rooms`                                                               | Required (Owner)                 | Create a room.                                                                | Done   |
+| GET    | `/owner/rooms`                                                               | Required (Owner)                 | List the owner's rooms.                                                       | Done   |
+| GET    | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | View a room owned by the current user.                                        | Done   |
 | PATCH  | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | Update a room owned by the current user.                                      |        |
 | DELETE | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | Delete a room owned by the current user.                                      |        |
 | GET    | `/owner/workspace/availability`                                              | Required (Owner)                 | View workspace availability.                                                  | Done   |
