@@ -13,6 +13,7 @@ import { slugify } from '../../utils/slugify';
 import { locationsService } from '../locations/locations.service';
 import { workspacesRepository } from './workspaces.repository';
 import { NotFoundError } from '../../errors/not-found.error';
+import { assertFloorCountFitsRooms } from '../rooms/rooms.rules';
 
 export const workspacesService = {
   async getByOwnerOrThrow(ownerId: string): Promise<WorkspaceWithLocation> {
@@ -66,6 +67,10 @@ export const workspacesService = {
       const ownerWorkspace = await workspacesRepository.findByOwnerId(ownerId, tx);
       if (!ownerWorkspace) {
         throw new NotFoundError('The workspace not found.', ERROR_CODES.WORKSPACE_NOT_FOUND);
+      }
+
+      if (data.floorCount !== undefined) {
+        await assertFloorCountFitsRooms(ownerWorkspace.id, data.floorCount, tx);
       }
 
       const { location, ...updateWordpaceRow } = data;

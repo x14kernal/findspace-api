@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../../src/app';
 import { CREATE_WORKSPACE_PATH, UPDATE_WORKSPACE_PATH } from '../constants';
 import { ERROR_CODES, FIELD_ERROR_CODES, SUCCESS_CODES } from '../../src/i18n';
-import { cleanup, loginUser, trackWorkspace, validWorkspaceBody } from '../helpers';
+import { addRoom, addWorkspace, cleanup, loginUser, trackWorkspace, validWorkspaceBody } from '../helpers';
 import { redis } from '../../src/database/redis';
 import { randomUUID } from 'node:crypto';
 import { db } from '../../src/prisma/db';
@@ -154,6 +154,20 @@ describe('PATCH /owner/workspace accepted requests', () => {
     expect(u.body.data.slug).toBe(c.body.data.slug);
     expect(row?.ownerId).toBe(id);
   });
+
+  it('returns 400 when floorCount is below the highest room floor', async () => {
+    const { accessToken } = await loginUser('owner');
+    await addWorkspace(accessToken); // floorCount is 3
+    await addRoom(accessToken, { floorNumber: 3 });
+
+    const res = await request(app)
+      .patch(UPDATE_WORKSPACE_PATH)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ floorCount: 2 });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error.code).toBe(ERROR_CODES.WORKSPACE_FLOOR_BELOW_ROOMS);
+  });
 });
 
 describe('PATCH /owner/workspace rejected requests', () => {
@@ -220,5 +234,18 @@ describe('PATCH /owner/workspace rejected requests', () => {
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
     expect(res.body.error.details[0].field).toBe(field);
     expect(res.body.error.details[0].code).toBe(fieldErrorCode);
+  });
+
+  it('returns 200 when floorCount equals the highest room floor', async () => {
+    const { accessToken } = await loginUser('owner');
+    await addWorkspace(accessToken);
+    await addRoom(accessToken, { floorNumber: 3 });
+
+    const res = await request(app)
+      .patch(UPDATE_WORKSPACE_PATH)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ floorCount: 3 });
+
+    expect(res.statusCode).toBe(200);
   });
 });

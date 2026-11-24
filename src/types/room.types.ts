@@ -1,6 +1,6 @@
 import type z from 'zod';
 import type { Exact } from './common';
-import type { createRoomSchema } from '../schemas/room.schema';
+import type { createRoomSchema, updateRoomSchema } from '../schemas/room.schema';
 
 export type Room = {
   id: string;
@@ -18,8 +18,10 @@ export type Room = {
 };
 
 export type CreateRoomInput = Exact<z.infer<typeof createRoomSchema>>;
+export type UpdateRoomInput = Exact<z.infer<typeof updateRoomSchema>>;
 
 export type NewRoomRow = CreateRoomInput & { workspaceId: string };
+export type UpdateRoomRow = UpdateRoomInput;
 
 export type RoomResponse = {
   id: string;

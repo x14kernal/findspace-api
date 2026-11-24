@@ -24,3 +24,8 @@ export const createRoomSchema = z.object({
     .regex(/^\d{1,2}(\.\d{1,2})?$/)
     .refine((v) => Number(v) > 0),
 });
+
+export const updateRoomSchema = createRoomSchema.partial().extend({
+  name: z.string().trim().min(1).max(100).nullable().optional(),
+  description: z.string().trim().min(1).max(1000).nullable().optional(),
+});
