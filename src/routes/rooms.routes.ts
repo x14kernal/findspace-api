@@ -4,6 +4,8 @@ import { authenticate } from '../middleware/authenticate';
 import { authorize } from '../middleware/authorize';
 import { validateRequest } from '../middleware/validate-request';
 import { createRoomSchema, roomIdParamSchema, updateRoomSchema } from '../schemas/room.schema';
+import { roomAvailabilitiesController } from '../modules/room-availabilities/room-availabilities.controller';
+import { replaceRoomAvailabilitiesSchema } from '../schemas/room-availability.schema';
 
 const router = Router();
 
@@ -38,6 +40,23 @@ router.delete(
   authorize('owner'),
   validateRequest(roomIdParamSchema, 'params'),
   roomsController.deleteOne,
+);
+
+router.get(
+  '/:roomId/availability',
+  authenticate,
+  authorize('owner'),
+  validateRequest(roomIdParamSchema, 'params'),
+  roomAvailabilitiesController.get,
+);
+
+router.put(
+  '/:roomId/availability',
+  authenticate,
+  authorize('owner'),
+  validateRequest(roomIdParamSchema, 'params'),
+  validateRequest(replaceRoomAvailabilitiesSchema),
+  roomAvailabilitiesController.replace,
 );
 
 export default router;
