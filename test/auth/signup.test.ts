@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../../src/app';
 import { deleteCreatedUsers, newEmail } from '../helpers';
 import { ERROR_CODES, SUCCESS_CODES } from '../../src/i18n';
-import { SIGNUP_PATH } from '../constants';
+import { PATHS } from '../constants';
 
 describe('POST /api/auth/signup', () => {
   // Validation
@@ -18,7 +18,7 @@ describe('POST /api/auth/signup', () => {
       'INVALID_VALUE',
     ],
   ])('rejects %s (400)', async (_name, body, field, code) => {
-    const res = await request(app).post(SIGNUP_PATH).send(body);
+    const res = await request(app).post(PATHS.signup).send(body);
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
@@ -30,7 +30,7 @@ describe('POST /api/auth/signup', () => {
     const email = newEmail();
 
     const res = await request(app)
-      .post(SIGNUP_PATH)
+      .post(PATHS.signup)
       .send({ email, password: '12345678', role: 'customer' });
 
     expect(res.status).toBe(201);
@@ -44,8 +44,8 @@ describe('POST /api/auth/signup', () => {
     const email = newEmail();
     const body = { email, password: '12345678' };
 
-    await request(app).post(SIGNUP_PATH).send(body);
-    const res = await request(app).post(SIGNUP_PATH).send(body);
+    await request(app).post(PATHS.signup).send(body);
+    const res = await request(app).post(PATHS.signup).send(body);
 
     expect(res.status).toBe(409);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_EMAIL_TAKEN);

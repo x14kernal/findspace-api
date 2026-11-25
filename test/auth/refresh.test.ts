@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../../src/app';
 import { redis } from '../../src/database/redis';
 import { cleanup, cookieValue, findCookie, loginUser, refreshWith } from '../helpers';
-import { REFRESH_PATH } from '../constants';
+import { PATHS } from '../constants';
 import { ERROR_CODES } from '../../src/i18n';
 import { authRepository } from '../../src/modules/auth/auth.repository';
 import { hashToken } from '../../src/utils/refresh-token';
@@ -18,7 +18,9 @@ describe('POST /api/auth/refresh', () => {
   it('returns a new access token and a new cookie (200)', async () => {
     const { refreshToken } = await loginUser();
 
-    const res = await request(app).post(REFRESH_PATH).set('Cookie', `refreshToken=${refreshToken}`);
+    const res = await request(app)
+      .post(PATHS.refresh)
+      .set('Cookie', `refreshToken=${refreshToken}`);
 
     expect(res.status).toBe(200);
     expect(typeof res.body.data.accessToken).toBe('string');
@@ -29,7 +31,7 @@ describe('POST /api/auth/refresh', () => {
     ['no cookie', undefined, false],
     ['a fake cookie', 'refreshToken=not-a-real-token', true],
   ])('rejects %s (401)', async (_name, cookie, clearsCookie) => {
-    const req = request(app).post(REFRESH_PATH);
+    const req = request(app).post(PATHS.refresh);
     if (cookie) req.set('Cookie', cookie);
     const res = await req;
 

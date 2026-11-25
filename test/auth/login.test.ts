@@ -6,7 +6,7 @@ import { redis } from '../../src/database/redis';
 import { hashToken } from '../../src/utils/refresh-token';
 import { authRepository } from '../../src/modules/auth/auth.repository';
 import { cleanup, cookieValue, findCookie, newEmail, trackToken } from '../helpers';
-import { LOGIN_PATH, SIGNUP_PATH } from '../constants';
+import { PATHS } from '../constants';
 
 beforeAll(() => redis.connect());
 afterAll(async () => {
@@ -20,7 +20,7 @@ describe('POST /api/auth/login', () => {
     ['invalid email', { email: 'bad', password: '12345678' }, 'email', 'INVALID_FORMAT'],
     ['empty password', { email: 'a@e.com', password: '' }, 'password', 'TOO_SMALL'],
   ])('rejects %s (400)', async (_name, body, field, code) => {
-    const res = await request(app).post(LOGIN_PATH).send(body);
+    const res = await request(app).post(PATHS.login).send(body);
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
@@ -30,7 +30,7 @@ describe('POST /api/auth/login', () => {
   // invalid credientails
   it('rejects not existing email (401)', async () => {
     const res = await request(app)
-      .post(LOGIN_PATH)
+      .post(PATHS.login)
       .send({ email: 'a@e.com', password: '12345678' });
 
     expect(res.status).toBe(401);
@@ -40,9 +40,9 @@ describe('POST /api/auth/login', () => {
   it('rejects wrong password (401)', async () => {
     const email = newEmail();
     const body = { email, password: '12345678' };
-    await request(app).post(SIGNUP_PATH).send(body);
+    await request(app).post(PATHS.signup).send(body);
 
-    const res = await request(app).post(LOGIN_PATH).send({ email, password: 'wrong_password' });
+    const res = await request(app).post(PATHS.login).send({ email, password: 'wrong_password' });
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_INVALID_CREDENTIALS);
@@ -52,9 +52,9 @@ describe('POST /api/auth/login', () => {
   it('create access & refresh tokens (200)', async () => {
     const email = newEmail();
     const body = { email, password: '12345678' };
-    await request(app).post(SIGNUP_PATH).send(body);
+    await request(app).post(PATHS.signup).send(body);
 
-    const res = await request(app).post(LOGIN_PATH).send(body);
+    const res = await request(app).post(PATHS.login).send(body);
 
     expect(res.status).toBe(200);
     expect(res.body.code).toBe(SUCCESS_CODES.AUTH_LOGIN_SUCCESS);

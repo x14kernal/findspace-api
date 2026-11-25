@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { GET_WORKSPACE_AVAILABILITY_PATH, REPLACE_WORKSPACE_AVAILABILITY_PATH } from '../constants';
+import { PATHS } from '../constants';
 import { ERROR_CODES, FIELD_ERROR_CODES, SUCCESS_CODES } from '../../src/i18n';
 import { addWorkspace, authed, cleanup, loginUser, validAvailabilityBody } from '../helpers';
 import { redis } from '../../src/database/redis';
@@ -12,7 +12,7 @@ afterAll(async () => {
 
 describe('GET /owner/workspace/availability', () => {
   it('returns 401 without a token', async () => {
-    const res = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, '').set(
+    const res = await authed('get', PATHS.workspaceAvailability, '').set(
       'Authorization',
       'Bearer ',
     );
@@ -23,7 +23,7 @@ describe('GET /owner/workspace/availability', () => {
 
   it('returns 403 for a cutomer', async () => {
     const { accessToken } = await loginUser();
-    const res = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, accessToken).set(
+    const res = await authed('get', PATHS.workspaceAvailability, accessToken).set(
       'Authorization',
       `Bearer ${accessToken}`,
     );
@@ -34,7 +34,7 @@ describe('GET /owner/workspace/availability', () => {
 
   it('returns 404 for an owner with no workspace', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, accessToken).set(
+    const res = await authed('get', PATHS.workspaceAvailability, accessToken).set(
       'Authorization',
       `Bearer ${accessToken}`,
     );
@@ -47,7 +47,7 @@ describe('GET /owner/workspace/availability', () => {
     const { accessToken } = await loginUser('owner');
     await addWorkspace(accessToken);
 
-    const res = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, accessToken).set(
+    const res = await authed('get', PATHS.workspaceAvailability, accessToken).set(
       'Authorization',
       `Bearer ${accessToken}`,
     );
@@ -60,7 +60,7 @@ describe('GET /owner/workspace/availability', () => {
 
 describe('PUT /owner/workspace/availability rejected', () => {
   it('returns 401 without a token', async () => {
-    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, '').send({});
+    const res = await authed('put', PATHS.workspaceAvailability, '').send({});
 
     expect(res.statusCode).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
@@ -68,7 +68,7 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 403 for a cutomer', async () => {
     const { accessToken } = await loginUser();
-    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send({});
+    const res = await authed('put', PATHS.workspaceAvailability, accessToken).send({});
 
     expect(res.statusCode).toBe(403);
     expect(res.body.error.code).toBe(ERROR_CODES.FORBIDDEN_ERROR);
@@ -76,7 +76,7 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 404 for an owner with no workspace', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+    const res = await authed('put', PATHS.workspaceAvailability, accessToken).send(
       validAvailabilityBody({ availabilities: [] }),
     );
 
@@ -86,7 +86,7 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 for bad input', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send({});
+    const res = await authed('put', PATHS.workspaceAvailability, accessToken).send({});
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
@@ -94,7 +94,7 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 for a bad time', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+    const res = await authed('put', PATHS.workspaceAvailability, accessToken).send(
       validAvailabilityBody({
         availabilities: [{ dayOfWeek: '1', startAt: '9:00', endAt: '25:00' }],
       }),
@@ -106,7 +106,7 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 when startAt is after endAt', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+    const res = await authed('put', PATHS.workspaceAvailability, accessToken).send(
       validAvailabilityBody({
         availabilities: [{ dayOfWeek: '1', startAt: '16:00', endAt: '13:00' }],
       }),
@@ -118,7 +118,7 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 for a repeated dayOfWeek', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+    const res = await authed('put', PATHS.workspaceAvailability, accessToken).send(
       validAvailabilityBody({
         availabilities: [
           { dayOfWeek: '1', startAt: '10:00', endAt: '13:00' },
@@ -133,7 +133,7 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 for a bad day 8', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+    const res = await authed('put', PATHS.workspaceAvailability, accessToken).send(
       validAvailabilityBody({
         availabilities: [{ dayOfWeek: '8', startAt: '10:00', endAt: '13:00' }],
       }),
@@ -145,7 +145,7 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 for more than 7 items', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+    const res = await authed('put', PATHS.workspaceAvailability, accessToken).send(
       validAvailabilityBody({
         availabilities: [
           { dayOfWeek: '1', startAt: '10:00', endAt: '13:00' },
@@ -182,24 +182,24 @@ describe('PUT /owner/workspace/availability accepted', () => {
     ];
     const payload3: [] = [];
 
-    const put1 = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+    const put1 = await authed('put', PATHS.workspaceAvailability, accessToken).send(
       validAvailabilityBody({ availabilities: payload1 }),
     );
 
-    const put2 = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+    const put2 = await authed('put', PATHS.workspaceAvailability, accessToken).send(
       validAvailabilityBody({ availabilities: payload2 }),
     );
 
-    const res2 = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, accessToken).set(
+    const res2 = await authed('get', PATHS.workspaceAvailability, accessToken).set(
       'Authorization',
       `Bearer ${accessToken}`,
     );
 
-    const put3 = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+    const put3 = await authed('put', PATHS.workspaceAvailability, accessToken).send(
       validAvailabilityBody({ availabilities: payload3 }),
     );
 
-    const res3 = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, accessToken).set(
+    const res3 = await authed('get', PATHS.workspaceAvailability, accessToken).set(
       'Authorization',
       `Bearer ${accessToken}`,
     );

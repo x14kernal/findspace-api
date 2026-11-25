@@ -3,7 +3,7 @@ import request from 'supertest';
 import { verifyGoogleIdToken } from '../../src/integrations/google/google.client';
 import { redis } from '../../src/database/redis';
 import { cleanup, cookieValue, findCookie, newEmail, trackToken } from '../helpers';
-import { GOOGLE_PATH, SIGNUP_PATH } from '../constants';
+import { PATHS } from '../constants';
 import { randomUUID } from 'node:crypto';
 import app from '../../src/app';
 import { ERROR_CODES, SUCCESS_CODES } from '../../src/i18n';
@@ -30,7 +30,7 @@ describe('POST /api/auth/google', () => {
     const email = newEmail();
     mockGoogle(randomUUID(), email);
 
-    const res = await request(app).post(GOOGLE_PATH).send({ idToken: 'fake', role: 'owner' });
+    const res = await request(app).post(PATHS.google).send({ idToken: 'fake', role: 'owner' });
 
     expect(res.status).toBe(201);
     expect(res.body.code).toBe(SUCCESS_CODES.AUTH_SIGNUP_SUCCESS);
@@ -54,11 +54,13 @@ describe('POST /api/auth/google', () => {
     const email = newEmail();
     mockGoogle(googleId, email);
 
-    const first = await request(app).post(GOOGLE_PATH).send({ idToken: 'fake', role: 'owner' });
+    const first = await request(app).post(PATHS.google).send({ idToken: 'fake', role: 'owner' });
     expect(first.status).toBe(201);
     trackToken(cookieValue(first.headers['set-cookie'], 'refreshToken'));
 
-    const second = await request(app).post(GOOGLE_PATH).send({ idToken: 'fake', role: 'customer' });
+    const second = await request(app)
+      .post(PATHS.google)
+      .send({ idToken: 'fake', role: 'customer' });
     expect(second.status).toBe(200);
     expect(second.body.code).toBe(SUCCESS_CODES.AUTH_LOGIN_SUCCESS);
     expect(second.body.data.user).toMatchObject({ email, role: 'owner' });
@@ -75,11 +77,11 @@ describe('POST /api/auth/google', () => {
     const googleId = randomUUID();
     const email = newEmail();
 
-    const first = await request(app).post(SIGNUP_PATH).send({ email, password: '12345678' });
+    const first = await request(app).post(PATHS.signup).send({ email, password: '12345678' });
     expect(first.status).toBe(201);
 
     mockGoogle(googleId, email);
-    const second = await request(app).post(GOOGLE_PATH).send({ idToken: 'fake' });
+    const second = await request(app).post(PATHS.google).send({ idToken: 'fake' });
 
     expect(second.status).toBe(409);
     expect(second.body.error.code).toBe(ERROR_CODES.AUTH_GOOGLE_ACCOUNT_NOT_LINKED);
@@ -96,7 +98,7 @@ describe('POST /api/auth/google', () => {
       new UnauthorizedError('Invalid Google token.', ERROR_CODES.AUTH_GOOGLE_TOKEN_INVALID),
     );
 
-    const res = await request(app).post(GOOGLE_PATH).send({ idToken: 'fake' });
+    const res = await request(app).post(PATHS.google).send({ idToken: 'fake' });
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_GOOGLE_TOKEN_INVALID);
@@ -108,7 +110,7 @@ describe('POST /api/auth/google', () => {
     ['an empty idToken', { idToken: '' }, 'idToken', 'TOO_SMALL'],
     ['the admin role', { idToken: 'fake', role: 'admin' }, 'role', 'INVALID_VALUE'],
   ])('rejects %s (400)', async (_name, body, field, code) => {
-    const res = await request(app).post(GOOGLE_PATH).send(body);
+    const res = await request(app).post(PATHS.google).send(body);
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app';
-import { CREATE_WORKSPACE_PATH } from '../constants';
+import { PATHS } from '../constants';
 import { ERROR_CODES, FIELD_ERROR_CODES, SUCCESS_CODES } from '../../src/i18n';
 import { authed, cleanup, loginUser, trackWorkspace, validWorkspaceBody } from '../helpers';
 import { redis } from '../../src/database/redis';
@@ -18,7 +18,7 @@ describe('POST /owner/workspace accepted requests', () => {
   it('returns 201', async () => {
     const { accessToken } = await loginUser('owner');
     const body = await validWorkspaceBody();
-    const res = await authed('post', CREATE_WORKSPACE_PATH, accessToken).send(body);
+    const res = await authed('post', PATHS.workspace, accessToken).send(body);
 
     trackWorkspace(res.body.data.id);
 
@@ -33,7 +33,7 @@ describe('POST /owner/workspace accepted requests', () => {
     const { accessToken, id } = await loginUser('owner');
     const ownerId = randomUUID();
     const body = await validWorkspaceBody({ ownerId, status: 'inactive' });
-    const res = await authed('post', CREATE_WORKSPACE_PATH, accessToken).send(body);
+    const res = await authed('post', PATHS.workspace, accessToken).send(body);
     const row = await db.orm.public.Workspace.where({ id: res.body.data.id }).first();
 
     trackWorkspace(res.body.data.id);
@@ -50,8 +50,8 @@ describe('POST /owner/workspace accepted requests', () => {
   it('returns 409 for sending the same request twice ', async () => {
     const { accessToken } = await loginUser('owner');
     const body = await validWorkspaceBody();
-    const first = await authed('post', CREATE_WORKSPACE_PATH, accessToken).send(body);
-    const second = await authed('post', CREATE_WORKSPACE_PATH, accessToken).send(body);
+    const first = await authed('post', PATHS.workspace, accessToken).send(body);
+    const second = await authed('post', PATHS.workspace, accessToken).send(body);
 
     trackWorkspace(first.body.data.id);
 
@@ -64,9 +64,9 @@ describe('POST /owner/workspace accepted requests', () => {
 
 describe('POST /owner/workspace rejected requests', () => {
   it('returns 401 without a token', async () => {
-    const first = await request(app).post(CREATE_WORKSPACE_PATH).send({});
-    const second = await authed('post', CREATE_WORKSPACE_PATH, '').send({});
-    const third = await authed('post', CREATE_WORKSPACE_PATH, 'bad token').send({});
+    const first = await request(app).post(PATHS.workspace).send({});
+    const second = await authed('post', PATHS.workspace, '').send({});
+    const third = await authed('post', PATHS.workspace, 'bad token').send({});
 
     expect(first.statusCode).toBe(401);
     expect(first.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
@@ -80,7 +80,7 @@ describe('POST /owner/workspace rejected requests', () => {
 
   it('returns 403 for a customer', async () => {
     const { accessToken } = await loginUser();
-    const res = await authed('post', CREATE_WORKSPACE_PATH, accessToken).send({});
+    const res = await authed('post', PATHS.workspace, accessToken).send({});
 
     expect(res.statusCode).toBe(403);
     expect(res.body.error.code).toBe(ERROR_CODES.FORBIDDEN_ERROR);
@@ -98,7 +98,7 @@ describe('POST /owner/workspace rejected requests', () => {
   ])('returns %s', async (_name, overrides, field, fieldErrorCode) => {
     const { accessToken } = await loginUser('owner');
     const body = await validWorkspaceBody(overrides);
-    const res = await authed('post', CREATE_WORKSPACE_PATH, accessToken).send(body);
+    const res = await authed('post', PATHS.workspace, accessToken).send(body);
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);

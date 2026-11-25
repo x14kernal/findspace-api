@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import app from '../../src/app';
 import request from 'supertest';
-import { GET_COUNTRIES_PATH } from '../constants';
+import { PATHS } from '../constants';
 import { SUCCESS_CODES } from '../../src/i18n';
 import { countriesRepository } from '../../src/modules/countries/countries.repository';
 
 describe('Get /countries', () => {
   it('returns 200 with countries list', async () => {
-    const res = await request(app).get(GET_COUNTRIES_PATH);
+    const res = await request(app).get(PATHS.countries);
     const countries = res.body.data;
 
     expect(res.statusCode).toBe(200);
@@ -30,7 +30,7 @@ describe('Get /countries', () => {
   it('returns 200 with empty list', async () => {
     vi.spyOn(countriesRepository, 'getAll').mockResolvedValueOnce([]);
 
-    const res = await request(app).get(GET_COUNTRIES_PATH);
+    const res = await request(app).get(PATHS.countries);
     const countries = res.body.data;
 
     expect(res.statusCode).toBe(200);

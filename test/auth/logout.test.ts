@@ -6,7 +6,7 @@ import { SUCCESS_CODES } from '../../src/i18n';
 import { authRepository } from '../../src/modules/auth/auth.repository';
 import { hashToken } from '../../src/utils/refresh-token';
 import { cleanup, findCookie, loginUser, logoutWith } from '../helpers';
-import { LOGOUT_PATH, REFRESH_PATH } from '../constants';
+import { PATHS } from '../constants';
 
 beforeAll(() => redis.connect());
 afterAll(async () => {
@@ -28,13 +28,13 @@ describe('POST /api/auth/logout', () => {
 
     // and the token no longer works
     const refresh = await request(app)
-      .post(REFRESH_PATH)
+      .post(PATHS.refresh)
       .set('Cookie', `refreshToken=${refreshToken}`);
     expect(refresh.status).toBe(401);
   });
 
   it('works without a cookie (200)', async () => {
-    const res = await request(app).post(LOGOUT_PATH);
+    const res = await request(app).post(PATHS.logout);
 
     expect(res.status).toBe(200);
     expect(res.body.code).toBe(SUCCESS_CODES.AUTH_LOGOUT_SUCCESS);

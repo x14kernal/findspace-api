@@ -4,7 +4,7 @@ import { authed, cleanup, loginUser, makePng, uploadAvatar, userWithProfile } fr
 import { storage } from '../../src/integrations/storage/storage.client';
 import request from 'supertest';
 import app from '../../src/app';
-import { AVATAR_PATH, ME_PATH } from '../constants';
+import { PATHS } from '../constants';
 import { ERROR_CODES, SUCCESS_CODES } from '../../src/i18n';
 import sharp from 'sharp';
 import { BadGatewayError } from '../../src/errors/bad-gateway.error';
@@ -50,7 +50,7 @@ describe('PUT /me/avatar', () => {
     expect(meta.format).toBe('webp');
     expect(meta.width).toBe(256);
 
-    const me = await authed('get', ME_PATH, accessToken);
+    const me = await authed('get', PATHS.me, accessToken);
     expect(me.body.data.profile.avatarUrl).toBe(avatarUrl);
   });
 
@@ -58,13 +58,13 @@ describe('PUT /me/avatar', () => {
     const { accessToken } = await userWithProfile();
 
     const first = await uploadAvatar(accessToken);
-    const firstMe = await authed('get', ME_PATH, accessToken);
+    const firstMe = await authed('get', PATHS.me, accessToken);
 
     expect(first.statusCode).toBe(200);
     expect(first.body.code).toBe(SUCCESS_CODES.PROFILE_AVATAR_UPDATE_SUCCESS);
 
     const second = await uploadAvatar(accessToken);
-    const secondMe = await authed('get', ME_PATH, accessToken);
+    const secondMe = await authed('get', PATHS.me, accessToken);
 
     expect(second.statusCode).toBe(200);
     expect(second.body.code).toBe(SUCCESS_CODES.PROFILE_AVATAR_UPDATE_SUCCESS);
@@ -78,23 +78,23 @@ describe('PUT /me/avatar', () => {
 
   it('returns 401 without a token', async () => {
     const png = await makePng();
-    const first = await authed('put', AVATAR_PATH, '').attach('avatar', png, {
+    const first = await authed('put', PATHS.avatar, '').attach('avatar', png, {
       filename: 'me.png',
       contentType: 'image/png',
     });
 
-    const second = await authed('put', AVATAR_PATH, '24dxza4').attach('avatar', png, {
+    const second = await authed('put', PATHS.avatar, '24dxza4').attach('avatar', png, {
       filename: 'me.png',
       contentType: 'image/png',
     });
 
     const third = await request(app)
-      .put(AVATAR_PATH)
+      .put(PATHS.avatar)
       .set('Authorization', '')
       .attach('avatar', png, { filename: 'me.png', contentType: 'image/png' });
 
     const fourth = await request(app)
-      .put(AVATAR_PATH)
+      .put(PATHS.avatar)
       .attach('avatar', png, { filename: 'me.png', contentType: 'image/png' });
 
     expect(first.statusCode).toBe(401);
@@ -115,7 +115,7 @@ describe('PUT /me/avatar', () => {
   it('returns 400 when no file is sent', async () => {
     const { accessToken } = await userWithProfile();
 
-    const res = await authed('put', AVATAR_PATH, accessToken);
+    const res = await authed('put', PATHS.avatar, accessToken);
     expect(storage.upload).not.toHaveBeenCalled();
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.FILE_MISSING);
@@ -125,7 +125,7 @@ describe('PUT /me/avatar', () => {
     const { accessToken } = await userWithProfile();
     const png = await makePng();
 
-    const res = await authed('put', AVATAR_PATH, accessToken).attach('invalid_field', png, {
+    const res = await authed('put', PATHS.avatar, accessToken).attach('invalid_field', png, {
       filename: 'me.png',
       contentType: 'image/png',
     });
@@ -137,7 +137,7 @@ describe('PUT /me/avatar', () => {
 
   it('returns 413 when the file is over 2 MB', async () => {
     const { accessToken } = await userWithProfile();
-    const res = await authed('put', AVATAR_PATH, accessToken).attach(
+    const res = await authed('put', PATHS.avatar, accessToken).attach(
       'avatar',
       Buffer.alloc(2 * 1024 * 1024 + 1),
       {
@@ -153,7 +153,7 @@ describe('PUT /me/avatar', () => {
 
   it('returns 415 when the file is not an image', async () => {
     const { accessToken } = await userWithProfile();
-    const res = await authed('put', AVATAR_PATH, accessToken).attach(
+    const res = await authed('put', PATHS.avatar, accessToken).attach(
       'avatar',
       Buffer.from('not an image'),
       {
@@ -170,7 +170,7 @@ describe('PUT /me/avatar', () => {
   it('returns 415 when the picture has too many pixels', async () => {
     const { accessToken } = await userWithProfile();
     const png = await makePng(5000, 5000);
-    const res = await authed('put', AVATAR_PATH, accessToken).attach('avatar', png, {
+    const res = await authed('put', PATHS.avatar, accessToken).attach('avatar', png, {
       filename: 'me.png',
       contentType: 'image/png',
     });
@@ -193,7 +193,7 @@ describe('PUT /me/avatar', () => {
     expect(res.body.error.code).toBe(ERROR_CODES.STORAGE_UPLOAD_FAILED);
     expect(storage.remove).not.toHaveBeenCalled();
 
-    const me = await authed('get', ME_PATH, accessToken);
+    const me = await authed('get', PATHS.me, accessToken);
     expect(me.body.data.profile.avatarUrl).toBeNull();
   });
 

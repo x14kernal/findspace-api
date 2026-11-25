@@ -4,13 +4,7 @@ import { addRoom, addWorkspace, authed, cleanup, loginUser, validRoomBody } from
 import app from '../../src/app';
 import request from 'supertest';
 import { ERROR_CODES, SUCCESS_CODES } from '../../src/i18n';
-import {
-  CREATE_ROOM_PATH,
-  DELETE_ROOM_PATH,
-  GET_ROOM_PATH,
-  GET_ROOMS_PATH,
-  UPDATE_ROOM_PATH,
-} from '../constants';
+import { PATHS } from '../constants';
 
 beforeAll(() => redis.connect());
 afterAll(async () => {
@@ -24,9 +18,7 @@ afterAll(async () => {
 describe('GET /owner/rooms', () => {
   it('returns 404 for an owner with no workspace', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .get(GET_ROOMS_PATH)
-      .set('Authorization', `Bearer ${accessToken}`);
+    const res = await request(app).get(PATHS.rooms).set('Authorization', `Bearer ${accessToken}`);
 
     expect(res.statusCode).toBe(404);
     expect(res.body.error.code).toBe(ERROR_CODES.WORKSPACE_NOT_FOUND);
@@ -41,9 +33,7 @@ describe('GET /owner/rooms', () => {
     await addRoom(a.accessToken, { code: 'A-2' });
     await addRoom(b.accessToken, { code: 'B-1' });
 
-    const res = await request(app)
-      .get(GET_ROOMS_PATH)
-      .set('Authorization', `Bearer ${a.accessToken}`);
+    const res = await request(app).get(PATHS.rooms).set('Authorization', `Bearer ${a.accessToken}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.code).toBe(SUCCESS_CODES.ROOMS_FETCHED);
@@ -58,7 +48,7 @@ describe('GET /owner/rooms/:roomId', () => {
     const room = await addRoom(accessToken);
 
     const res = await request(app)
-      .get(`${GET_ROOM_PATH}/${room.id}`)
+      .get(PATHS.room(room.id))
       .set('Authorization', `Bearer ${accessToken}`);
 
     expect(res.statusCode).toBe(200);
@@ -74,7 +64,7 @@ describe('GET /owner/rooms/:roomId', () => {
     const room = await addRoom(a.accessToken);
 
     const res = await request(app)
-      .get(`${GET_ROOM_PATH}/${room.id}`)
+      .get(PATHS.room(room.id))
       .set('Authorization', `Bearer ${b.accessToken}`);
 
     expect(res.statusCode).toBe(404);
@@ -84,7 +74,7 @@ describe('GET /owner/rooms/:roomId', () => {
   it('returns 400 for a bad uuid', async () => {
     const { accessToken } = await loginUser('owner');
     const res = await request(app)
-      .get(`${GET_ROOM_PATH}/abc`)
+      .get(PATHS.room('abc'))
       .set('Authorization', `Bearer ${accessToken}`);
 
     expect(res.statusCode).toBe(400);
@@ -94,7 +84,7 @@ describe('GET /owner/rooms/:roomId', () => {
 
 describe('POST /owner/rooms', () => {
   it('returns 401 without a token', async () => {
-    const res = await authed('post', CREATE_ROOM_PATH, '').send({});
+    const res = await authed('post', PATHS.rooms, '').send({});
 
     expect(res.statusCode).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
@@ -102,7 +92,7 @@ describe('POST /owner/rooms', () => {
 
   it('returns 404 for an owner with no workspace', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await authed('post', CREATE_ROOM_PATH, accessToken).send(validRoomBody());
+    const res = await authed('post', PATHS.rooms, accessToken).send(validRoomBody());
 
     expect(res.statusCode).toBe(404);
     expect(res.body.error.code).toBe(ERROR_CODES.WORKSPACE_NOT_FOUND);
@@ -111,7 +101,7 @@ describe('POST /owner/rooms', () => {
   it('returns 400 when `floorNumber` is above the workspace `floorCount`', async () => {
     const { accessToken } = await loginUser('owner');
     await addWorkspace(accessToken); // defualt floorCount is 3
-    const res = await authed('post', CREATE_ROOM_PATH, accessToken).send(
+    const res = await authed('post', PATHS.rooms, accessToken).send(
       validRoomBody({ floorNumber: 4 }),
     );
 
@@ -122,12 +112,8 @@ describe('POST /owner/rooms', () => {
   it('returns 409 when the same `code` is sent twice', async () => {
     const { accessToken } = await loginUser('owner');
     await addWorkspace(accessToken);
-    const r1 = await authed('post', CREATE_ROOM_PATH, accessToken).send(
-      validRoomBody({ code: 'R-1' }),
-    );
-    const r2 = await authed('post', CREATE_ROOM_PATH, accessToken).send(
-      validRoomBody({ code: 'R-1' }),
-    );
+    const r1 = await authed('post', PATHS.rooms, accessToken).send(validRoomBody({ code: 'R-1' }));
+    const r2 = await authed('post', PATHS.rooms, accessToken).send(validRoomBody({ code: 'R-1' }));
 
     expect(r1.statusCode).toBe(201);
     expect(r1.body.code).toBe(SUCCESS_CODES.ROOM_CREATED);
@@ -138,7 +124,7 @@ describe('POST /owner/rooms', () => {
 
   it('returns 403 for a customer', async () => {
     const { accessToken } = await loginUser();
-    const res = await authed('post', CREATE_ROOM_PATH, accessToken).send({});
+    const res = await authed('post', PATHS.rooms, accessToken).send({});
 
     expect(res.statusCode).toBe(403);
     expect(res.body.error.code).toBe(ERROR_CODES.FORBIDDEN_ERROR);
@@ -147,7 +133,7 @@ describe('POST /owner/rooms', () => {
   it('returns 201 on success', async () => {
     const { accessToken } = await loginUser('owner');
     await addWorkspace(accessToken);
-    const res = await authed('post', CREATE_ROOM_PATH, accessToken).send(
+    const res = await authed('post', PATHS.rooms, accessToken).send(
       validRoomBody({
         name: 'stars',
         description: 'your dream space to achieve your dreams',
@@ -165,7 +151,7 @@ describe('POST /owner/rooms', () => {
 });
 
 const patchRoom = (token: string, roomId: string, body: object) =>
-  authed('patch', `${UPDATE_ROOM_PATH}/${roomId}`, token).send(body);
+  authed('patch', PATHS.room(roomId), token).send(body);
 
 describe('PATCH /owner/rooms/:roomId', () => {
   it('returns 200 and changes only the sent field', async () => {
@@ -238,10 +224,10 @@ describe('PATCH /owner/rooms/:roomId', () => {
 });
 
 const deleteRoom = (token: string, roomId: string) =>
-  authed('delete', `${DELETE_ROOM_PATH}/${roomId}`, token).set('Authorization', `Bearer ${token}`);
+  authed('delete', PATHS.room(roomId), token).set('Authorization', `Bearer ${token}`);
 
 const getRoom = (token: string, roomId: string) =>
-  request(app).get(`${GET_ROOM_PATH}/${roomId}`).set('Authorization', `Bearer ${token}`);
+  request(app).get(PATHS.room(roomId)).set('Authorization', `Bearer ${token}`);
 
 describe('DELETE /owner/rooms/:roomId', () => {
   it('returns 200 and the room is gone', async () => {
