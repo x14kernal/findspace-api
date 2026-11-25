@@ -19,10 +19,7 @@ describe('PATCH /owner/workspace accepted requests', () => {
     const { accessToken } = await loginUser('owner');
     const body = await validWorkspaceBody();
 
-    const c = await request(app)
-      .post(CREATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(body);
+    const c = await request(app).post(CREATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send(body);
 
     const u = await request(app)
       .patch(UPDATE_WORKSPACE_PATH)
@@ -49,10 +46,7 @@ describe('PATCH /owner/workspace accepted requests', () => {
     const { accessToken } = await loginUser('owner');
     const body = await validWorkspaceBody();
 
-    const c = await request(app)
-      .post(CREATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(body);
+    const c = await request(app).post(CREATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send(body);
 
     const u = await request(app)
       .patch(UPDATE_WORKSPACE_PATH)
@@ -76,15 +70,9 @@ describe('PATCH /owner/workspace accepted requests', () => {
     const { accessToken } = await loginUser('owner');
     const body = await validWorkspaceBody();
 
-    const c = await request(app)
-      .post(CREATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(body);
+    const c = await request(app).post(CREATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send(body);
 
-    const u = await request(app)
-      .patch(UPDATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({ description: null });
+    const u = await request(app).patch(UPDATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send({ description: null });
 
     trackWorkspace(c.body.data.id);
 
@@ -101,15 +89,9 @@ describe('PATCH /owner/workspace accepted requests', () => {
     const { accessToken } = await loginUser('owner');
     const body = await validWorkspaceBody();
 
-    const c = await request(app)
-      .post(CREATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(body);
+    const c = await request(app).post(CREATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send(body);
 
-    const u = await request(app)
-      .patch(UPDATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({});
+    const u = await request(app).patch(UPDATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send({});
 
     trackWorkspace(c.body.data.id);
 
@@ -126,20 +108,14 @@ describe('PATCH /owner/workspace accepted requests', () => {
     const { accessToken, id } = await loginUser('owner');
     const body = await validWorkspaceBody();
 
-    const c = await request(app)
-      .post(CREATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(body);
+    const c = await request(app).post(CREATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send(body);
 
     const invalidUpdateVals = {
       ownerId: randomUUID(),
       status: 'inactive',
       slug: 'random-slug',
     };
-    const u = await request(app)
-      .patch(UPDATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(invalidUpdateVals);
+    const u = await request(app).patch(UPDATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send(invalidUpdateVals);
 
     const row = await db.orm.public.Workspace.where({ id: u.body.data.id }).first();
 
@@ -160,10 +136,7 @@ describe('PATCH /owner/workspace accepted requests', () => {
     await addWorkspace(accessToken); // floorCount is 3
     await addRoom(accessToken, { floorNumber: 3 });
 
-    const res = await request(app)
-      .patch(UPDATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({ floorCount: 2 });
+    const res = await request(app).patch(UPDATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send({ floorCount: 2 });
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.WORKSPACE_FLOOR_BELOW_ROOMS);
@@ -173,14 +146,8 @@ describe('PATCH /owner/workspace accepted requests', () => {
 describe('PATCH /owner/workspace rejected requests', () => {
   it('returns 401 without a token', async () => {
     const first = await request(app).patch(UPDATE_WORKSPACE_PATH).send({});
-    const second = await request(app)
-      .patch(UPDATE_WORKSPACE_PATH)
-      .set('Authorization', 'Bearer ')
-      .send({});
-    const third = await request(app)
-      .patch(UPDATE_WORKSPACE_PATH)
-      .set('Authorization', 'Bearer invalidToken')
-      .send({});
+    const second = await request(app).patch(UPDATE_WORKSPACE_PATH).set('Authorization', 'Bearer ').send({});
+    const third = await request(app).patch(UPDATE_WORKSPACE_PATH).set('Authorization', 'Bearer invalidToken').send({});
 
     expect(first.statusCode).toBe(401);
     expect(first.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
@@ -194,10 +161,7 @@ describe('PATCH /owner/workspace rejected requests', () => {
 
   it('returns 403 for a customer', async () => {
     const { accessToken } = await loginUser();
-    const res = await request(app)
-      .patch(UPDATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({});
+    const res = await request(app).patch(UPDATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send({});
 
     expect(res.statusCode).toBe(403);
     expect(res.body.error.code).toBe(ERROR_CODES.FORBIDDEN_ERROR);
@@ -205,10 +169,7 @@ describe('PATCH /owner/workspace rejected requests', () => {
 
   it('returns 404 for owner with no workspace', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .patch(UPDATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({});
+    const res = await request(app).patch(UPDATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send({});
 
     expect(res.statusCode).toBe(404);
     expect(res.body.error.code).toBe(ERROR_CODES.WORKSPACE_NOT_FOUND);
@@ -216,19 +177,11 @@ describe('PATCH /owner/workspace rejected requests', () => {
 
   it.each([
     ['400 for floorCount: 0', { floorCount: 0 }, 'floorCount', FIELD_ERROR_CODES.TOO_SMALL],
-    [
-      '400 for timezone Mars/City',
-      { timezone: 'Mars/City' },
-      'timezone',
-      FIELD_ERROR_CODES.INVALID,
-    ],
+    ['400 for timezone Mars/City', { timezone: 'Mars/City' }, 'timezone', FIELD_ERROR_CODES.INVALID],
   ])('returns %s', async (_name, overrides, field, fieldErrorCode) => {
     const { accessToken } = await loginUser('owner');
     const body = await validWorkspaceBody(overrides);
-    const res = await request(app)
-      .patch(UPDATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(body);
+    const res = await request(app).patch(UPDATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send(body);
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
@@ -241,10 +194,7 @@ describe('PATCH /owner/workspace rejected requests', () => {
     await addWorkspace(accessToken);
     await addRoom(accessToken, { floorNumber: 3 });
 
-    const res = await request(app)
-      .patch(UPDATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({ floorCount: 3 });
+    const res = await request(app).patch(UPDATE_WORKSPACE_PATH).set('Authorization', `Bearer ${accessToken}`).send({ floorCount: 3 });
 
     expect(res.statusCode).toBe(200);
   });

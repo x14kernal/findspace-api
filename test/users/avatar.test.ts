@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, vi, describe, expect, it } from 'vitest';
 import { redis } from '../../src/database/redis';
-import { cleanup, loginUser, makePng, uploadAvatar, userWithProfile } from '../helpers';
+import { authed, cleanup, loginUser, makePng, uploadAvatar, userWithProfile } from '../helpers';
 import { storage } from '../../src/integrations/storage/storage.client';
 import request from 'supertest';
 import app from '../../src/app';
@@ -50,7 +50,7 @@ describe('PUT /me/avatar', () => {
     expect(meta.format).toBe('webp');
     expect(meta.width).toBe(256);
 
-    const me = await request(app).get(ME_PATH).set('Authorization', `Bearer ${accessToken}`);
+    const me = await authed('get', ME_PATH, accessToken);
     expect(me.body.data.profile.avatarUrl).toBe(avatarUrl);
   });
 
@@ -58,13 +58,13 @@ describe('PUT /me/avatar', () => {
     const { accessToken } = await userWithProfile();
 
     const first = await uploadAvatar(accessToken);
-    const firstMe = await request(app).get(ME_PATH).set('Authorization', `Bearer ${accessToken}`);
+    const firstMe = await authed('get', ME_PATH, accessToken);
 
     expect(first.statusCode).toBe(200);
     expect(first.body.code).toBe(SUCCESS_CODES.PROFILE_AVATAR_UPDATE_SUCCESS);
 
     const second = await uploadAvatar(accessToken);
-    const secondMe = await request(app).get(ME_PATH).set('Authorization', `Bearer ${accessToken}`);
+    const secondMe = await authed('get', ME_PATH, accessToken);
 
     expect(second.statusCode).toBe(200);
     expect(second.body.code).toBe(SUCCESS_CODES.PROFILE_AVATAR_UPDATE_SUCCESS);
@@ -78,15 +78,15 @@ describe('PUT /me/avatar', () => {
 
   it('returns 401 without a token', async () => {
     const png = await makePng();
-    const first = await request(app)
-      .put(AVATAR_PATH)
-      .set('Authorization', `Bearer `)
-      .attach('avatar', png, { filename: 'me.png', contentType: 'image/png' });
+    const first = await authed('put', AVATAR_PATH, '').attach('avatar', png, {
+      filename: 'me.png',
+      contentType: 'image/png',
+    });
 
-    const second = await request(app)
-      .put(AVATAR_PATH)
-      .set('Authorization', `Bearer cfx1a74`)
-      .attach('avatar', png, { filename: 'me.png', contentType: 'image/png' });
+    const second = await authed('put', AVATAR_PATH, '24dxza4').attach('avatar', png, {
+      filename: 'me.png',
+      contentType: 'image/png',
+    });
 
     const third = await request(app)
       .put(AVATAR_PATH)
@@ -115,7 +115,7 @@ describe('PUT /me/avatar', () => {
   it('returns 400 when no file is sent', async () => {
     const { accessToken } = await userWithProfile();
 
-    const res = await request(app).put(AVATAR_PATH).set('Authorization', `Bearer ${accessToken}`);
+    const res = await authed('put', AVATAR_PATH, accessToken);
     expect(storage.upload).not.toHaveBeenCalled();
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.FILE_MISSING);
@@ -125,10 +125,10 @@ describe('PUT /me/avatar', () => {
     const { accessToken } = await userWithProfile();
     const png = await makePng();
 
-    const res = await request(app)
-      .put(AVATAR_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .attach('invalid_field', png, { filename: 'me.png', contentType: 'image/png' });
+    const res = await authed('put', AVATAR_PATH, accessToken).attach('invalid_field', png, {
+      filename: 'me.png',
+      contentType: 'image/png',
+    });
 
     expect(storage.upload).not.toHaveBeenCalled();
     expect(res.statusCode).toBe(400);
@@ -137,13 +137,14 @@ describe('PUT /me/avatar', () => {
 
   it('returns 413 when the file is over 2 MB', async () => {
     const { accessToken } = await userWithProfile();
-    const res = await request(app)
-      .put(AVATAR_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .attach('avatar', Buffer.alloc(2 * 1024 * 1024 + 1), {
+    const res = await authed('put', AVATAR_PATH, accessToken).attach(
+      'avatar',
+      Buffer.alloc(2 * 1024 * 1024 + 1),
+      {
         filename: 'big.png',
         contentType: 'image/png',
-      });
+      },
+    );
 
     expect(storage.upload).not.toHaveBeenCalled();
     expect(res.statusCode).toBe(413);
@@ -152,13 +153,14 @@ describe('PUT /me/avatar', () => {
 
   it('returns 415 when the file is not an image', async () => {
     const { accessToken } = await userWithProfile();
-    const res = await request(app)
-      .put(AVATAR_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .attach('avatar', Buffer.from('not an image'), {
+    const res = await authed('put', AVATAR_PATH, accessToken).attach(
+      'avatar',
+      Buffer.from('not an image'),
+      {
         filename: 'fake.png',
         contentType: 'image/png',
-      });
+      },
+    );
 
     expect(storage.upload).not.toHaveBeenCalled();
     expect(res.statusCode).toBe(415);
@@ -168,13 +170,10 @@ describe('PUT /me/avatar', () => {
   it('returns 415 when the picture has too many pixels', async () => {
     const { accessToken } = await userWithProfile();
     const png = await makePng(5000, 5000);
-    const res = await request(app)
-      .put(AVATAR_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .attach('avatar', png, {
-        filename: 'me.png',
-        contentType: 'image/png',
-      });
+    const res = await authed('put', AVATAR_PATH, accessToken).attach('avatar', png, {
+      filename: 'me.png',
+      contentType: 'image/png',
+    });
 
     expect(storage.upload).not.toHaveBeenCalled();
     expect(res.statusCode).toBe(415);
@@ -194,7 +193,7 @@ describe('PUT /me/avatar', () => {
     expect(res.body.error.code).toBe(ERROR_CODES.STORAGE_UPLOAD_FAILED);
     expect(storage.remove).not.toHaveBeenCalled();
 
-    const me = await request(app).get(ME_PATH).set('Authorization', `Bearer ${accessToken}`);
+    const me = await authed('get', ME_PATH, accessToken);
     expect(me.body.data.profile.avatarUrl).toBeNull();
   });
 
@@ -206,7 +205,7 @@ describe('PUT /me/avatar', () => {
     expect(res.statusCode).toBe(404);
     expect(res.body.error.code).toBe(ERROR_CODES.PROFILE_NOT_FOUND);
 
-   const uploadedKey = vi.mocked(storage.upload).mock.calls[0]![0].key;
+    const uploadedKey = vi.mocked(storage.upload).mock.calls[0]![0].key;
     expect(storage.remove).toHaveBeenCalledWith(uploadedKey);
   });
 });
