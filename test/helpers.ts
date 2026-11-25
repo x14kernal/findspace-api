@@ -183,3 +183,9 @@ export const uploadAvatar = async (token: string) => {
       contentType: 'image/png',
     });
 };
+
+export const authed = (
+  method: 'get' | 'post' | 'put' | 'patch' | 'delete',
+  path: string,
+  token: string,
+) => request(app)[method](path).set('Authorization', `Bearer ${token}`);

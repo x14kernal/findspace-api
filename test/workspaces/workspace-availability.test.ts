@@ -1,9 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import request from 'supertest';
-import app from '../../src/app';
 import { GET_WORKSPACE_AVAILABILITY_PATH, REPLACE_WORKSPACE_AVAILABILITY_PATH } from '../constants';
 import { ERROR_CODES, FIELD_ERROR_CODES, SUCCESS_CODES } from '../../src/i18n';
-import { addWorkspace, cleanup, loginUser, validAvailabilityBody } from '../helpers';
+import { addWorkspace, authed, cleanup, loginUser, validAvailabilityBody } from '../helpers';
 import { redis } from '../../src/database/redis';
 
 beforeAll(() => redis.connect());
@@ -14,9 +12,10 @@ afterAll(async () => {
 
 describe('GET /owner/workspace/availability', () => {
   it('returns 401 without a token', async () => {
-    const res = await request(app)
-      .get(GET_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', 'Bearer ');
+    const res = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, '').set(
+      'Authorization',
+      'Bearer ',
+    );
 
     expect(res.statusCode).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
@@ -24,9 +23,10 @@ describe('GET /owner/workspace/availability', () => {
 
   it('returns 403 for a cutomer', async () => {
     const { accessToken } = await loginUser();
-    const res = await request(app)
-      .get(GET_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`);
+    const res = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, accessToken).set(
+      'Authorization',
+      `Bearer ${accessToken}`,
+    );
 
     expect(res.statusCode).toBe(403);
     expect(res.body.error.code).toBe(ERROR_CODES.FORBIDDEN_ERROR);
@@ -34,9 +34,10 @@ describe('GET /owner/workspace/availability', () => {
 
   it('returns 404 for an owner with no workspace', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .get(GET_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`);
+    const res = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, accessToken).set(
+      'Authorization',
+      `Bearer ${accessToken}`,
+    );
 
     expect(res.statusCode).toBe(404);
     expect(res.body.error.code).toBe(ERROR_CODES.WORKSPACE_NOT_FOUND);
@@ -46,9 +47,10 @@ describe('GET /owner/workspace/availability', () => {
     const { accessToken } = await loginUser('owner');
     await addWorkspace(accessToken);
 
-    const res = await request(app)
-      .get(GET_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`);
+    const res = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, accessToken).set(
+      'Authorization',
+      `Bearer ${accessToken}`,
+    );
 
     expect(res.statusCode).toBe(200);
     expect(res.body.code).toBe(SUCCESS_CODES.WORKSPACE_AVAILABILITY_FETCHED);
@@ -58,10 +60,7 @@ describe('GET /owner/workspace/availability', () => {
 
 describe('PUT /owner/workspace/availability rejected', () => {
   it('returns 401 without a token', async () => {
-    const res = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', 'Bearer ')
-      .send({});
+    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, '').send({});
 
     expect(res.statusCode).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
@@ -69,10 +68,7 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 403 for a cutomer', async () => {
     const { accessToken } = await loginUser();
-    const res = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({});
+    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send({});
 
     expect(res.statusCode).toBe(403);
     expect(res.body.error.code).toBe(ERROR_CODES.FORBIDDEN_ERROR);
@@ -80,10 +76,9 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 404 for an owner with no workspace', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(validAvailabilityBody({ availabilities: [] }));
+    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+      validAvailabilityBody({ availabilities: [] }),
+    );
 
     expect(res.statusCode).toBe(404);
     expect(res.body.error.code).toBe(ERROR_CODES.WORKSPACE_NOT_FOUND);
@@ -91,10 +86,7 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 for bad input', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({});
+    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send({});
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
@@ -102,14 +94,11 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 for a bad time', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(
-        validAvailabilityBody({
-          availabilities: [{ dayOfWeek: '1', startAt: '9:00', endAt: '25:00' }],
-        }),
-      );
+    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+      validAvailabilityBody({
+        availabilities: [{ dayOfWeek: '1', startAt: '9:00', endAt: '25:00' }],
+      }),
+    );
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
@@ -117,14 +106,11 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 when startAt is after endAt', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(
-        validAvailabilityBody({
-          availabilities: [{ dayOfWeek: '1', startAt: '16:00', endAt: '13:00' }],
-        }),
-      );
+    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+      validAvailabilityBody({
+        availabilities: [{ dayOfWeek: '1', startAt: '16:00', endAt: '13:00' }],
+      }),
+    );
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
@@ -132,17 +118,14 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 for a repeated dayOfWeek', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(
-        validAvailabilityBody({
-          availabilities: [
-            { dayOfWeek: '1', startAt: '10:00', endAt: '13:00' },
-            { dayOfWeek: '1', startAt: '10:00', endAt: '13:00' },
-          ],
-        }),
-      );
+    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+      validAvailabilityBody({
+        availabilities: [
+          { dayOfWeek: '1', startAt: '10:00', endAt: '13:00' },
+          { dayOfWeek: '1', startAt: '10:00', endAt: '13:00' },
+        ],
+      }),
+    );
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
@@ -150,14 +133,11 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 for a bad day 8', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(
-        validAvailabilityBody({
-          availabilities: [{ dayOfWeek: '8', startAt: '10:00', endAt: '13:00' }],
-        }),
-      );
+    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+      validAvailabilityBody({
+        availabilities: [{ dayOfWeek: '8', startAt: '10:00', endAt: '13:00' }],
+      }),
+    );
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
@@ -165,23 +145,20 @@ describe('PUT /owner/workspace/availability rejected', () => {
 
   it('returns 400 for more than 7 items', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(
-        validAvailabilityBody({
-          availabilities: [
-            { dayOfWeek: '1', startAt: '10:00', endAt: '13:00' },
-            { dayOfWeek: '2', startAt: '10:00', endAt: '13:00' },
-            { dayOfWeek: '3', startAt: '10:00', endAt: '13:00' },
-            { dayOfWeek: '4', startAt: '10:00', endAt: '13:00' },
-            { dayOfWeek: '5', startAt: '10:00', endAt: '13:00' },
-            { dayOfWeek: '6', startAt: '10:00', endAt: '13:00' },
-            { dayOfWeek: '7', startAt: '10:00', endAt: '13:00' },
-            { dayOfWeek: '7', startAt: '10:00', endAt: '13:00' },
-          ],
-        }),
-      );
+    const res = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+      validAvailabilityBody({
+        availabilities: [
+          { dayOfWeek: '1', startAt: '10:00', endAt: '13:00' },
+          { dayOfWeek: '2', startAt: '10:00', endAt: '13:00' },
+          { dayOfWeek: '3', startAt: '10:00', endAt: '13:00' },
+          { dayOfWeek: '4', startAt: '10:00', endAt: '13:00' },
+          { dayOfWeek: '5', startAt: '10:00', endAt: '13:00' },
+          { dayOfWeek: '6', startAt: '10:00', endAt: '13:00' },
+          { dayOfWeek: '7', startAt: '10:00', endAt: '13:00' },
+          { dayOfWeek: '7', startAt: '10:00', endAt: '13:00' },
+        ],
+      }),
+    );
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_ERROR);
@@ -205,28 +182,27 @@ describe('PUT /owner/workspace/availability accepted', () => {
     ];
     const payload3: [] = [];
 
-    const put1 = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(validAvailabilityBody({ availabilities: payload1 }));
+    const put1 = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+      validAvailabilityBody({ availabilities: payload1 }),
+    );
 
-    const put2 = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(validAvailabilityBody({ availabilities: payload2 }));
+    const put2 = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+      validAvailabilityBody({ availabilities: payload2 }),
+    );
 
-    const res2 = await request(app)
-      .get(GET_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`);
+    const res2 = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, accessToken).set(
+      'Authorization',
+      `Bearer ${accessToken}`,
+    );
 
-    const put3 = await request(app)
-      .put(REPLACE_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(validAvailabilityBody({ availabilities: payload3 }));
+    const put3 = await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
+      validAvailabilityBody({ availabilities: payload3 }),
+    );
 
-    const res3 = await request(app)
-      .get(GET_WORKSPACE_AVAILABILITY_PATH)
-      .set('Authorization', `Bearer ${accessToken}`);
+    const res3 = await authed('get', GET_WORKSPACE_AVAILABILITY_PATH, accessToken).set(
+      'Authorization',
+      `Bearer ${accessToken}`,
+    );
 
     expect(put1.statusCode).toBe(200);
     expect(put1.body.code).toBe(SUCCESS_CODES.WORKSPACE_AVAILABILITY_UPDATED);

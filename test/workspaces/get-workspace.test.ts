@@ -1,6 +1,6 @@
 import { beforeAll, afterAll, it, expect } from 'vitest';
 import { redis } from '../../src/database/redis';
-import { cleanup, loginUser, trackWorkspace, validWorkspaceBody } from '../helpers';
+import { authed, cleanup, loginUser, trackWorkspace, validWorkspaceBody } from '../helpers';
 import { describe } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app';
@@ -18,14 +18,8 @@ describe('GET /owner/workspace accepted requests', () => {
     const { accessToken } = await loginUser('owner');
     const body = await validWorkspaceBody();
 
-    const createdWorkspaceRes = await request(app)
-      .post(CREATE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(body);
-
-    const getWorkspaceRes = await request(app)
-      .get(GET_MINE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`);
+    const createdWorkspaceRes = await authed('post', CREATE_WORKSPACE_PATH, accessToken).send(body);
+    const getWorkspaceRes = await authed('get', GET_MINE_WORKSPACE_PATH, accessToken);
 
     trackWorkspace(createdWorkspaceRes.body.data.id);
 
@@ -39,10 +33,8 @@ describe('GET /owner/workspace accepted requests', () => {
 describe('GET /owner/workspace rejected requests', () => {
   it('returns 401 without a token', async () => {
     const first = await request(app).get(GET_MINE_WORKSPACE_PATH);
-    const second = await request(app).get(GET_MINE_WORKSPACE_PATH).set('Authorization', 'Bearer ');
-    const third = await request(app)
-      .get(GET_MINE_WORKSPACE_PATH)
-      .set('Authorization', 'Bearer invalidToken');
+    const second = await authed('get', GET_MINE_WORKSPACE_PATH, '');
+    const third = await authed('get', GET_MINE_WORKSPACE_PATH, 'invalid token');
 
     expect(first.statusCode).toBe(401);
     expect(first.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
@@ -56,9 +48,7 @@ describe('GET /owner/workspace rejected requests', () => {
 
   it('returns 403 for a customer', async () => {
     const { accessToken } = await loginUser();
-    const res = await request(app)
-      .get(GET_MINE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`);
+    const res = await authed('get', GET_MINE_WORKSPACE_PATH, accessToken);
 
     expect(res.statusCode).toBe(403);
     expect(res.body.error.code).toBe(ERROR_CODES.FORBIDDEN_ERROR);
@@ -66,10 +56,7 @@ describe('GET /owner/workspace rejected requests', () => {
 
   it('returns 404 for owner with no workspace', async () => {
     const { accessToken } = await loginUser('owner');
-    const res = await request(app)
-      .get(GET_MINE_WORKSPACE_PATH)
-      .set('Authorization', `Bearer ${accessToken}`);
-
+    const res = await authed('get', GET_MINE_WORKSPACE_PATH, accessToken);
     expect(res.statusCode).toBe(404);
     expect(res.body.error.code).toBe(ERROR_CODES.WORKSPACE_NOT_FOUND);
   });
