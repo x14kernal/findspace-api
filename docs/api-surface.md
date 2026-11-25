@@ -39,8 +39,8 @@
 | DELETE | `/owner/rooms/{roomId}`                                                      | Required (Owner)                 | Delete a room owned by the current user.                                      | Done   |
 | GET    | `/owner/workspace/availability`                                              | Required (Owner)                 | View workspace availability.                                                  | Done   |
 | PUT    | `/owner/workspace/availability`                                              | Required (Owner)                 | Replace workspace availability.                                               | Done   |
-| GET    | `/owner/rooms/{roomId}/availability`                                         | Required (Owner)                 | View room availability.                                                       |        |
-| PUT    | `/owner/rooms/{roomId}/availability`                                         | Required (Owner)                 | Replace room availability.                                                    |        |
+| GET    | `/owner/rooms/{roomId}/availability`                                         | Required (Owner)                 | View room availability.                                                       | Done   |
+| PUT    | `/owner/rooms/{roomId}/availability`                                         | Required (Owner)                 | Replace room availability.                                                    | Done   |
 | GET    | `/owner/rooms/{roomId}/unavailability`                                       | Required (Owner)                 | List blocked room times.                                                      |        |
 | POST   | `/owner/rooms/{roomId}/unavailability`                                       | Required (Owner)                 | Block a room time.                                                            |        |
 | DELETE | `/owner/rooms/{roomId}/unavailability/{id}`                                  | Required (Owner)                 | Remove a blocked room time.                                                   |        |
