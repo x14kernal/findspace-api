@@ -1,14 +1,4 @@
 import { db } from '../src/prisma/db';
-import {
-  AVATAR_PATH,
-  CREATE_PROFILE_PATH,
-  CREATE_WORKSPACE_PATH,
-  LOGIN_PATH,
-  LOGOUT_PATH,
-  REFRESH_PATH,
-  SIGNUP_PATH,
-  CREATE_ROOM_PATH,
-} from './constants';
 import app from '../src/app';
 import request from 'supertest';
 import { authRepository } from '../src/modules/auth/auth.repository';
@@ -16,6 +6,7 @@ import { hashToken } from '../src/utils/refresh-token';
 import type { Char } from '@prisma/orm-postgres/target/codec-types';
 import sharp from 'sharp';
 import { randomBytes } from 'node:crypto';
+import { PATHS } from './constants';
 
 const createdEmails: string[] = [];
 const createdTokens: string[] = [];
@@ -40,8 +31,8 @@ export const loginUser = async (role: string = 'customer') => {
   const email = newEmail();
   const body = { email, password: '12345678', role };
 
-  await request(app).post(SIGNUP_PATH).send(body);
-  const res = await request(app).post(LOGIN_PATH).send(body);
+  await request(app).post(PATHS.signup).send(body);
+  const res = await request(app).post(PATHS.login).send(body);
 
   const refreshToken = cookieValue(res.headers['set-cookie'], 'refreshToken');
   trackToken(refreshToken);
@@ -65,16 +56,13 @@ export const userWithProfile = async (role: string = 'customer') => {
     location: { countryId: country!.id },
   };
 
-  await request(app)
-    .post(CREATE_PROFILE_PATH)
-    .set('Authorization', `Bearer ${accessToken}`)
-    .send(body);
+  await request(app).post(PATHS.profile).set('Authorization', `Bearer ${accessToken}`).send(body);
 
   return { accessToken, body, country };
 };
 
 export const logoutWith = (token: string) => {
-  return request(app).post(LOGOUT_PATH).set('Cookie', `refreshToken=${token}`);
+  return request(app).post(PATHS.logout).set('Cookie', `refreshToken=${token}`);
 };
 
 export const deleteCreatedUsers = async () => {
@@ -84,7 +72,7 @@ export const deleteCreatedUsers = async () => {
 };
 
 export const refreshWith = (token: string) => {
-  return request(app).post(REFRESH_PATH).set('Cookie', `refreshToken=${token}`);
+  return request(app).post(PATHS.refresh).set('Cookie', `refreshToken=${token}`);
 };
 
 export const trackToken = (token: string) => {
@@ -126,7 +114,7 @@ export const validWorkspaceBody = async (overrides: Record<string, unknown> = {}
 export const addWorkspace = async (accessToken: string) => {
   const body = await validWorkspaceBody();
   const c = await request(app)
-    .post(CREATE_WORKSPACE_PATH)
+    .post(PATHS.workspace)
     .set('Authorization', `Bearer ${accessToken}`)
     .send(body);
   trackWorkspace(c.body.data.id);
@@ -153,7 +141,7 @@ export const validRoomBody = (overrides: Record<string, unknown> = {}) => ({
 
 export const addRoom = async (accessToken: string, overrides = {}) => {
   const res = await request(app)
-    .post(CREATE_ROOM_PATH)
+    .post(PATHS.rooms)
     .set('Authorization', `Bearer ${accessToken}`)
     .send(validRoomBody(overrides));
   return res.body.data;
@@ -176,7 +164,7 @@ export const makePng = (width = 300, height = 300) =>
 export const uploadAvatar = async (token: string) => {
   const png = await makePng();
   return request(app)
-    .put(AVATAR_PATH)
+    .put(PATHS.avatar)
     .set('Authorization', `Bearer ${token}`)
     .attach('avatar', png, {
       filename: 'me.png',

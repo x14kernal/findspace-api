@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it, beforeAll } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app';
-import { GET_MINE_WORKSPACE_PATH } from '../constants';
+import { PATHS } from '../constants';
 import { ERROR_CODES } from '../../src/i18n';
 import { cleanup, loginUser } from '../helpers';
 import { redis } from '../../src/database/redis';
@@ -16,7 +16,7 @@ describe('authorize middleware', () => {
   it('returns 403 when the role is not owner', async () => {
     const { accessToken } = await loginUser(); // by defualt is customer
     const res = await request(app)
-      .get(GET_MINE_WORKSPACE_PATH)
+      .get(PATHS.workspace)
       .set('Authorization', `Bearer ${accessToken}`);
 
     expect(res.status).toBe(403);
@@ -26,7 +26,7 @@ describe('authorize middleware', () => {
   it('lets an owner through', async () => {
     const { accessToken } = await loginUser('owner');
     const res = await request(app)
-      .get(GET_MINE_WORKSPACE_PATH)
+      .get(PATHS.workspace)
       .set('Authorization', `Bearer ${accessToken}`);
 
     expect(res.status).toBe(404);

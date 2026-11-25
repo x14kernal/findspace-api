@@ -6,7 +6,7 @@ import { SUCCESS_CODES } from '../../i18n';
 
 export const workspacesController = {
   async getMine(req: Request, res: Response) {
-    const data = await workspacesService.getByOwnerOrThrow(req.user!.id);
+    const data = await workspacesService.getWithLocationByOwnerOrThrow(req.user!.id);
     sendSuccess(res, toWorkspaceResponse(data), {
       status: 200,
       code: SUCCESS_CODES.WORKSPACE_FETCHED,
@@ -26,6 +26,4 @@ export const workspacesController = {
       code: SUCCESS_CODES.WORKSPACE_UPDATED,
     });
   },
-
-  async replaceAvailability(req: Request, res: Response) {},
 };

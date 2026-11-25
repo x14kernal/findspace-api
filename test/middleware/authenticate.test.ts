@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it, beforeAll } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app';
-import { GET_MINE_WORKSPACE_PATH, ME_PATH } from '../constants';
+import { PATHS } from '../constants';
 import { ERROR_CODES } from '../../src/i18n';
 import { cleanup, loginUser } from '../helpers';
 import { redis } from '../../src/database/redis';
@@ -17,7 +17,7 @@ afterAll(async () => {
 
 describe('authenticate middleware', () => {
   it('returns 401 when the header is missing', async () => {
-    const res = await request(app).get(ME_PATH);
+    const res = await request(app).get(PATHS.me);
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
@@ -25,14 +25,14 @@ describe('authenticate middleware', () => {
 
   it('returns 401 when the word Bearer is missing', async () => {
     const { accessToken } = await loginUser();
-    const res = await request(app).get(ME_PATH).set('Authorization', `${accessToken}`);
+    const res = await request(app).get(PATHS.me).set('Authorization', `${accessToken}`);
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
   });
 
   it('returns 401 when the token is invalid', async () => {
-    const res = await request(app).get(ME_PATH).set('Authorization', 'Bearer fakeToken');
+    const res = await request(app).get(PATHS.me).set('Authorization', 'Bearer fakeToken');
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_INVALID);
@@ -48,49 +48,16 @@ describe('authenticate middleware', () => {
       .setExpirationTime('-1s')
       .sign(secret);
 
-    const res = await request(app).get(ME_PATH).set('Authorization', `Bearer ${expiredToken}`);
+    const res = await request(app).get(PATHS.me).set('Authorization', `Bearer ${expiredToken}`);
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_INVALID);
   });
-});
 
-describe('authenticate middleware', () => {
   it('returns 409 when the role is not owner', async () => {
-    const res = await request(app).get(GET_MINE_WORKSPACE_PATH);
+    const res = await request(app).get(PATHS.workspace);
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
   });
-
-  // it('returns 401 when the word Bearer is missing', async () => {
-  //   const { accessToken } = await loginUser();
-  //   const res = await request(app).get(ME_PATH).set('Authorization', `${accessToken}`);
-
-  //   expect(res.status).toBe(401);
-  //   expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_MISSING);
-  // });
-
-  // it('returns 401 when the token is invalid', async () => {
-  //   const res = await request(app).get(ME_PATH).set('Authorization', 'Bearer fakeToken');
-
-  //   expect(res.status).toBe(401);
-  //   expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_INVALID);
-  // });
-
-  // it('returns 401 when the token is expired', async () => {
-  //   const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
-
-  //   const expiredToken = await new SignJWT({ role: 'customer' })
-  //     .setProtectedHeader({ alg: 'HS256' })
-  //     .setSubject(randomUUID())
-  //     .setIssuedAt()
-  //     .setExpirationTime('-1s')
-  //     .sign(secret);
-
-  //   const res = await request(app).get(ME_PATH).set('Authorization', `Bearer ${expiredToken}`);
-
-  //   expect(res.status).toBe(401);
-  //   expect(res.body.error.code).toBe(ERROR_CODES.AUTH_TOKEN_INVALID);
-  // });
 });

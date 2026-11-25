@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { GET_ROOM_AVAILABILITY_PATH, REPLACE_WORKSPACE_AVAILABILITY_PATH } from '../constants';
+import { PATHS } from '../constants';
 import { ERROR_CODES, SUCCESS_CODES } from '../../src/i18n';
 import {
   addRoom,
@@ -18,16 +18,13 @@ afterAll(async () => {
   await redis.quit();
 }, 30000);
 
-const roomAvailabilityPath = (roomId: string) =>
-  `${GET_ROOM_AVAILABILITY_PATH}/${roomId}/availability`;
+const roomAvailabilityPath = (roomId: string) => PATHS.roomAvailability(roomId);
 
 // owner + workspace open Monday and Tuesday 09:00-17:00 (the default body) + one room
 const ownerWithRoom = async () => {
   const { accessToken } = await loginUser('owner');
   await addWorkspace(accessToken);
-  await authed('put', REPLACE_WORKSPACE_AVAILABILITY_PATH, accessToken).send(
-    validAvailabilityBody(),
-  );
+  await authed('put', PATHS.workspaceAvailability, accessToken).send(validAvailabilityBody());
   const room = await addRoom(accessToken);
   return { accessToken, roomId: room.id as string };
 };

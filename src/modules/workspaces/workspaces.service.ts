@@ -6,7 +6,7 @@ import type {
   CreateWorkspaceInput,
   NewWorkspaceRow,
   UpdateWorkspaceInput,
-  UpdateWorkspaceRow,
+  Workspace,
   WorkspaceWithLocation,
 } from '../../types/workspace.types';
 import { slugify } from '../../utils/slugify';
@@ -16,7 +16,13 @@ import { NotFoundError } from '../../errors/not-found.error';
 import { assertFloorCountFitsRooms } from '../rooms/rooms.rules';
 
 export const workspacesService = {
-  async getByOwnerOrThrow(ownerId: string): Promise<WorkspaceWithLocation> {
+  async getByOwnerOrThrow(ownerId: string): Promise<Workspace> {
+    const workspace = await workspacesRepository.findByOwnerId(ownerId);
+    if (!workspace)
+      throw new NotFoundError('The workspace not found.', ERROR_CODES.WORKSPACE_NOT_FOUND);
+    return workspace;
+  },
+  async getWithLocationByOwnerOrThrow(ownerId: string): Promise<WorkspaceWithLocation> {
     const workspace = await workspacesRepository.findByOwnerIdWithLocation(ownerId);
     if (!workspace)
       throw new NotFoundError('The workspace not found.', ERROR_CODES.WORKSPACE_NOT_FOUND);
