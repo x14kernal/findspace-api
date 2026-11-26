@@ -10,6 +10,7 @@ export const PATHS = {
   profile: '/api/me/profile',
 
   countries: '/api/countries',
+  features: '/api/features',
 
   workspace: '/api/owner/workspace',
   workspaceAvailability: '/api/owner/workspace/availability',
@@ -17,4 +18,5 @@ export const PATHS = {
   rooms: '/api/owner/rooms',
   room: (id: string) => `/api/owner/rooms/${id}`,
   roomAvailability: (id: string) => `/api/owner/rooms/${id}/availability`,
+  roomFeatures: (id: string) => `/api/owner/rooms/${id}/features`,
 };

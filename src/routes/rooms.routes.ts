@@ -6,6 +6,8 @@ import { validateRequest } from '../middleware/validate-request';
 import { createRoomSchema, roomIdParamSchema, updateRoomSchema } from '../schemas/room.schema';
 import { roomAvailabilitiesController } from '../modules/room-availabilities/room-availabilities.controller';
 import { replaceRoomAvailabilitiesSchema } from '../schemas/room-availability.schema';
+import { roomFeaturesController } from '../modules/room-features/room-features.controller';
+import { replaceRoomFeaturesSchema } from '../schemas/room-feature.schema';
 
 const router = Router();
 
@@ -57,6 +59,15 @@ router.put(
   validateRequest(roomIdParamSchema, 'params'),
   validateRequest(replaceRoomAvailabilitiesSchema),
   roomAvailabilitiesController.replace,
+);
+
+router.put(
+  '/:roomId/features',
+  authenticate,
+  authorize('owner'),
+  validateRequest(roomIdParamSchema, 'params'),
+  validateRequest(replaceRoomFeaturesSchema),
+  roomFeaturesController.replace,
 );
 
 export default router;

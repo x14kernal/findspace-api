@@ -13,7 +13,9 @@
     "contract:emit": "prisma contract emit",
     "db:seed": "tsx src/prisma/seed.ts",
     "seed:countries": "tsx --env-file=.env src/prisma/seed-countries.ts",
-    "seed:countries:test": "tsx --env-file=.env.test src/prisma/seed-countries.ts"
+    "seed:countries:test": "tsx --env-file=.env.test src/prisma/seed-countries.ts",
+    "seed:features": "tsx --env-file=.env src/prisma/seed-features.ts",
+    "seed:features:test": "tsx --env-file=.env.test src/prisma/seed-features.ts"
   },
   "keywords": [],
   "author": "",

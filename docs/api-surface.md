@@ -44,8 +44,8 @@
 | GET    | `/owner/rooms/{roomId}/unavailability`                                       | Required (Owner)                 | List blocked room times.                                                      |        |
 | POST   | `/owner/rooms/{roomId}/unavailability`                                       | Required (Owner)                 | Block a room time.                                                            |        |
 | DELETE | `/owner/rooms/{roomId}/unavailability/{id}`                                  | Required (Owner)                 | Remove a blocked room time.                                                   |        |
-| GET    | `/features`                                                                  | Public                           | List available room features.                                                 |        |
-| PUT    | `/owner/rooms/{roomId}/features`                                             | Required (Owner)                 | Sync the features assigned to a room.                                         |        |
+| GET    | `/features`                                                                  | Public                           | List available room features.                                                 | Done   |
+| PUT    | `/owner/rooms/{roomId}/features`                                             | Required (Owner)                 | Sync the features assigned to a room.                                         | Done   |
 | GET    | `/owner/bookings`                                                            | Required (Owner)                 | List bookings for the owner's workspace.                                      |        |
 | GET    | `/owner/bookings/{bookingId}`                                                | Required (Owner)                 | View a booking for the owner's workspace.                                     |        |
 | PATCH  | `/owner/bookings/{bookingId}/confirm`                                        | Required (Owner)                 | Confirm a pending booking for the owner's workspace.                          |        |
