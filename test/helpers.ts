@@ -147,6 +147,21 @@ export const addRoom = async (accessToken: string, overrides = {}) => {
   return res.body.data;
 };
 
+export const ownerWithRoom = async () => {
+  const { accessToken } = await loginUser('owner');
+  await addWorkspace(accessToken);
+  const room = await addRoom(accessToken);
+  return { accessToken, roomId: room.id as string };
+};
+
+export const addUnavailability = async (token: string, roomId: string, overrides = {}) =>
+  authed('post', PATHS.roomUnavailability(roomId), token).send({
+    dayDate: '2099-01-01',
+    startAt: '10:00',
+    endAt: '12:00',
+    ...overrides,
+  });
+
 export const cleanup = async () => {
   for (const token of createdTokens) {
     const data = await authRepository.findToken(hashToken(token));

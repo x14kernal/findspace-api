@@ -8,6 +8,8 @@ import { roomAvailabilitiesController } from '../modules/room-availabilities/roo
 import { replaceRoomAvailabilitiesSchema } from '../schemas/room-availability.schema';
 import { roomFeaturesController } from '../modules/room-features/room-features.controller';
 import { replaceRoomFeaturesSchema } from '../schemas/room-feature.schema';
+import { createRoomUnavailabilitySchema, roomUnavailabilityParamsSchema } from '../schemas/room-unavailability.schema';
+import { roomUnavailabilitiesController } from '../modules/room-unavailabilities/room-unavailabilities.controller';
 
 const router = Router();
 
@@ -68,6 +70,31 @@ router.put(
   validateRequest(roomIdParamSchema, 'params'),
   validateRequest(replaceRoomFeaturesSchema),
   roomFeaturesController.replace,
+);
+
+router.get(
+  '/:roomId/unavailability',
+  authenticate,
+  authorize('owner'),
+  validateRequest(roomIdParamSchema, 'params'),
+  roomUnavailabilitiesController.get,
+);
+
+router.post(
+  '/:roomId/unavailability',
+  authenticate,
+  authorize('owner'),
+  validateRequest(roomIdParamSchema, 'params'),
+  validateRequest(createRoomUnavailabilitySchema),
+  roomUnavailabilitiesController.create,
+);
+
+router.delete(
+  '/:roomId/unavailability/:unavailabilityId',
+  authenticate,
+  authorize('owner'),
+  validateRequest(roomUnavailabilityParamsSchema, 'params'),
+  roomUnavailabilitiesController.deleteOne,
 );
 
 export default router;
