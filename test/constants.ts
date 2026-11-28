@@ -19,4 +19,7 @@ export const PATHS = {
   room: (id: string) => `/api/owner/rooms/${id}`,
   roomAvailability: (id: string) => `/api/owner/rooms/${id}/availability`,
   roomFeatures: (id: string) => `/api/owner/rooms/${id}/features`,
+  roomUnavailability: (roomId: string) => `/api/owner/rooms/${roomId}/unavailability`,
+  roomUnavailabilityItem: (roomId: string, id: string) =>
+    `/api/owner/rooms/${roomId}/unavailability/${id}`,
 };

@@ -41,9 +41,9 @@
 | PUT    | `/owner/workspace/availability`                                              | Required (Owner)                 | Replace workspace availability.                                               | Done   |
 | GET    | `/owner/rooms/{roomId}/availability`                                         | Required (Owner)                 | View room availability.                                                       | Done   |
 | PUT    | `/owner/rooms/{roomId}/availability`                                         | Required (Owner)                 | Replace room availability.                                                    | Done   |
-| GET    | `/owner/rooms/{roomId}/unavailability`                                       | Required (Owner)                 | List blocked room times.                                                      |        |
-| POST   | `/owner/rooms/{roomId}/unavailability`                                       | Required (Owner)                 | Block a room time.                                                            |        |
-| DELETE | `/owner/rooms/{roomId}/unavailability/{id}`                                  | Required (Owner)                 | Remove a blocked room time.                                                   |        |
+| GET    | `/owner/rooms/{roomId}/unavailability`                                       | Required (Owner)                 | List blocked room times.                                                      | Done   |
+| POST   | `/owner/rooms/{roomId}/unavailability`                                       | Required (Owner)                 | Block a room time.                                                            | Done   |
+| DELETE | `/owner/rooms/{roomId}/unavailability/{id}`                                  | Required (Owner)                 | Remove a blocked room time.                                                   | Done   |
 | GET    | `/features`                                                                  | Public                           | List available room features.                                                 | Done   |
 | PUT    | `/owner/rooms/{roomId}/features`                                             | Required (Owner)                 | Sync the features assigned to a room.                                         | Done   |
 | GET    | `/owner/bookings`                                                            | Required (Owner)                 | List bookings for the owner's workspace.                                      |        |
